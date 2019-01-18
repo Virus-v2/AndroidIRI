@@ -1,5 +1,7 @@
 package com.northbridgeanalytics.mysensors;
 
+//https://code.tutsplus.com/tutorials/using-the-accelerometer-on-android--mobile-22125
+
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
