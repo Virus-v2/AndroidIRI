@@ -130,12 +130,16 @@ public class MainActivity extends AppCompatActivity
             float pitch = orientationValues[1];
             float roll = orientationValues[2];
 
+            double azimuthDeg = orientationValues[0] * (180/Math.PI);
+            double pitchDeg = orientationValues[1] * (180/Math.PI);
+            double rollDeg = orientationValues[2] * (180/Math.PI);
+
             mTextSensorAzimuth.setText(getResources().getString(
-                    R.string.value_format, azimuth));
+                    R.string.value_format, azimuthDeg));
             mTextSensorPitch.setText(getResources().getString(
-                    R.string.value_format, pitch));
+                    R.string.value_format, pitchDeg));
             mTextSensorRoll.setText(getResources().getString(
-                    R.string.value_format, roll));
+                    R.string.value_format, rollDeg));
 
             Log.i(TAG, "Azimuth: " + azimuth + " pitch: " + pitch + " roll: " + roll);
         } else {
