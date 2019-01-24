@@ -20,6 +20,9 @@ import java.util.Arrays;
 public class MainActivity extends AppCompatActivity
         implements SensorEventListener {
 
+    // Default tag for our Log
+    public static final String TAG ="MyMessage";
+
     // System sensor manager instance.
     private SensorManager mSensorManager;
 
@@ -112,6 +115,9 @@ public class MainActivity extends AppCompatActivity
                 return;
         }
 
+//        Log.i(TAG, "Accelerometer: " + Arrays.toString(mAccelerometerData));
+        Log.i(TAG, "Magnetometer: " + Arrays.toString(mMagnetometerData));
+
         float[] rotationMatrix = new float[9];
         boolean rotationOK = SensorManager.getRotationMatrix(rotationMatrix,
                 null, mAccelerometerData, mMagnetometerData);
@@ -119,22 +125,22 @@ public class MainActivity extends AppCompatActivity
         float orientationValues[] = new float[3];
         if (rotationOK) {
             SensorManager.getOrientation(rotationMatrix, orientationValues);
+
+            float azimuth = orientationValues[0];
+            float pitch = orientationValues[1];
+            float roll = orientationValues[2];
+
+            mTextSensorAzimuth.setText(getResources().getString(
+                    R.string.value_format, azimuth));
+            mTextSensorPitch.setText(getResources().getString(
+                    R.string.value_format, pitch));
+            mTextSensorRoll.setText(getResources().getString(
+                    R.string.value_format, roll));
+
+            Log.i(TAG, "Azimuth: " + azimuth + " pitch: " + pitch + " roll: " + roll);
+        } else {
+//            Log.i(TAG, "rotationOK: ");
         }
-
-        float azimuth = orientationValues[0];
-        float pitch = orientationValues[1];
-        float roll = orientationValues[2];
-
-        mTextSensorAzimuth.setText(getResources().getString(
-                R.string.value_format, azimuth));
-        mTextSensorPitch.setText(getResources().getString(
-                R.string.value_format, pitch));
-        mTextSensorRoll.setText(getResources().getString(
-                R.string.value_format, roll));
-
-
-
-
     }
 
     /**
