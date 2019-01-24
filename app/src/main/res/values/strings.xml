@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">MySensors</string>
+    <string name="value_format">%1$.2f</string>
+    <string name="label_azimuth_string">Azmiuth:</string>
+    <string name="label_pitch_string">Pitch:</string>
+    <string name="label_roll_string">Roll:</string>
 </resources>
