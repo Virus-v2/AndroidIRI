@@ -2,6 +2,9 @@ package com.northbridgeanalytics.mysensors;
 
 //https://code.tutsplus.com/tutorials/using-the-accelerometer-on-android--mobile-22125
 //https://google-developer-training.gitbooks.io/android-developer-advanced-course-practicals/content/unit-1-expand-the-user-experience/lesson-3-sensors/3-2-p-working-with-sensor-based-orientation/3-2-p-working-with-sensor-based-orientation.html
+//https://stackoverflow.com/questions/5464847/transforming-accelerometers-data-from-devices-coordinates-to-real-world-coordi
+//https://stackoverflow.com/questions/23701546/android-get-accelerometers-on-earth-coordinate-system
+//https://stackoverflow.com/questions/11578636/acceleration-from-devices-coordinate-system-into-absolute-coordinate-system
 
 import android.content.Context;
 import android.content.pm.ActivityInfo;
@@ -118,18 +121,27 @@ public class MainActivity extends AppCompatActivity
 //        Log.i(TAG, "Accelerometer: " + Arrays.toString(mAccelerometerData));
         Log.i(TAG, "Magnetometer: " + Arrays.toString(mMagnetometerData));
 
+        // An empty float array that will be populated by the .getRoationMatrix method.
         float[] rotationMatrix = new float[9];
+
+        // Not sure exactly what this does, but populates the matrix with the input data. rotationOK returns true if the
+        // .getRotationMatrix method is successful.
         boolean rotationOK = SensorManager.getRotationMatrix(rotationMatrix,
                 null, mAccelerometerData, mMagnetometerData);
 
         float orientationValues[] = new float[3];
         if (rotationOK) {
+
+            Log.i(TAG, Arrays.toString(rotationMatrix));
+
             SensorManager.getOrientation(rotationMatrix, orientationValues);
 
+            // Azimuth, pitch, and roll in radians, taken from  the .getOrientation method.
             float azimuth = orientationValues[0];
             float pitch = orientationValues[1];
             float roll = orientationValues[2];
 
+            // Azimuth, pitch, and roll are given in radiens. Here we convert them to degrees.
             double azimuthDeg = orientationValues[0] * (180/Math.PI);
             double pitchDeg = orientationValues[1] * (180/Math.PI);
             double rollDeg = orientationValues[2] * (180/Math.PI);
@@ -141,7 +153,7 @@ public class MainActivity extends AppCompatActivity
             mTextSensorRoll.setText(getResources().getString(
                     R.string.value_format, rollDeg));
 
-            Log.i(TAG, "Azimuth: " + azimuth + " pitch: " + pitch + " roll: " + roll);
+//            Log.i(TAG, "Azimuth: " + azimuth + " pitch: " + pitch + " roll: " + roll);
         } else {
 //            Log.i(TAG, "rotationOK: ");
         }
