@@ -119,7 +119,7 @@ public class MainActivity extends AppCompatActivity
         }
 
 //        Log.i(TAG, "Accelerometer: " + Arrays.toString(mAccelerometerData));
-        Log.i(TAG, "Magnetometer: " + Arrays.toString(mMagnetometerData));
+//        Log.i(TAG, "Magnetometer: " + Arrays.toString(mMagnetometerData));
 
         // An empty float array that will be populated by the .getRoationMatrix method.
         float[] rotationMatrix = new float[9];
@@ -129,7 +129,9 @@ public class MainActivity extends AppCompatActivity
         boolean rotationOK = SensorManager.getRotationMatrix(rotationMatrix,
                 null, mAccelerometerData, mMagnetometerData);
 
+        // Empty Float array to hold the azimuth, pitch, and roll.
         float orientationValues[] = new float[3];
+        // If the getRotationMatrix method is successfull run the following code.
         if (rotationOK) {
 
             Log.i(TAG, Arrays.toString(rotationMatrix));
@@ -141,11 +143,13 @@ public class MainActivity extends AppCompatActivity
             float pitch = orientationValues[1];
             float roll = orientationValues[2];
 
-            // Azimuth, pitch, and roll are given in radiens. Here we convert them to degrees.
+            // Azimuth, pitch, and roll are given in radians. Here we convert them to degrees.
             double azimuthDeg = orientationValues[0] * (180/Math.PI);
             double pitchDeg = orientationValues[1] * (180/Math.PI);
             double rollDeg = orientationValues[2] * (180/Math.PI);
 
+            // Append the data to the android view.
+            // TODO What do the curly braces do? Seem to replace R.id..
             mTextSensorAzimuth.setText(getResources().getString(
                     R.string.value_format, azimuthDeg));
             mTextSensorPitch.setText(getResources().getString(
