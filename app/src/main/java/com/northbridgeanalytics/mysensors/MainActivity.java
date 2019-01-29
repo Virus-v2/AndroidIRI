@@ -1,10 +1,10 @@
 package com.northbridgeanalytics.mysensors;
 
-//https://code.tutsplus.com/tutorials/using-the-accelerometer-on-android--mobile-22125
-//https://google-developer-training.gitbooks.io/android-developer-advanced-course-practicals/content/unit-1-expand-the-user-experience/lesson-3-sensors/3-2-p-working-with-sensor-based-orientation/3-2-p-working-with-sensor-based-orientation.html
-//https://stackoverflow.com/questions/5464847/transforming-accelerometers-data-from-devices-coordinates-to-real-world-coordi
-//https://stackoverflow.com/questions/23701546/android-get-accelerometers-on-earth-coordinate-system
-//https://stackoverflow.com/questions/11578636/acceleration-from-devices-coordinate-system-into-absolute-coordinate-system
+// https://code.tutsplus.com/tutorials/using-the-accelerometer-on-android--mobile-22125
+// https://google-developer-training.gitbooks.io/android-developer-advanced-course-practicals/content/unit-1-expand-the-user-experience/lesson-3-sensors/3-2-p-working-with-sensor-based-orientation/3-2-p-working-with-sensor-based-orientation.html
+// https://stackoverflow.com/questions/5464847/transforming-accelerometers-data-from-devices-coordinates-to-real-world-coordi
+// https://stackoverflow.com/questions/23701546/android-get-accelerometers-on-earth-coordinate-system
+// https://stackoverflow.com/questions/11578636/acceleration-from-devices-coordinate-system-into-absolute-coordinate-system
 
 import android.content.Context;
 import android.content.pm.ActivityInfo;
@@ -16,8 +16,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
-
-import java.util.Arrays;
 
 
 public class MainActivity extends AppCompatActivity
@@ -33,11 +31,15 @@ public class MainActivity extends AppCompatActivity
     // sensor manager.
     private Sensor mSensorAccelerometer;
     private Sensor mSensorMagnetometer;
+    private Sensor mSensorGravity;
 
     // TextViews to display current sensor values.
-    private TextView mTextSensorAzimuth;
-    private TextView mTextSensorPitch;
-    private TextView mTextSensorRoll;
+    private TextView mTextSensorPhoneAccX;
+    private TextView mTextSensorPhoneAccY;
+    private TextView mTextSensorPhoneAccZ;
+    private TextView mTextSensorEarthAccX;
+    private TextView mTextSensorEarthAccY;
+    private TextView mTextSensorEarthAccZ;
 
     // Very small values for the accelerometer (on all three axes) should
     // be interpreted as 0. This value is the amount of acceptable
@@ -46,6 +48,34 @@ public class MainActivity extends AppCompatActivity
 
     private float[] mAccelerometerData = new float[3];
     private float[] mMagnetometerData = new float[3];
+    private float[] mGravityData = new float[3];
+
+
+    public float[] earthAccelorometer(float[] accelerometer, float[] magnetometer, float[] gravity) {
+        float[] deviceRelativeAcceleration = new float[4];
+        deviceRelativeAcceleration[0] = accelerometer[0];
+        deviceRelativeAcceleration[1] = accelerometer[1];
+        deviceRelativeAcceleration[2] = accelerometer[2];
+        deviceRelativeAcceleration[3] = 0;
+
+        // Change the device relative acceleration values to earth relative values
+        // X axis -> East
+        // Y axis -> North Pole
+        // Z axis -> Sky
+
+        float[] R = new float[16], I = new float[16], earthAcc = new float[16];
+
+        SensorManager.getRotationMatrix(R, I, gravity, magnetometer);
+
+        float[] inv = new float[16];
+
+        android.opengl.Matrix.invertM(inv, 0, R, 0);
+        android.opengl.Matrix.multiplyMV(earthAcc, 0, inv, 0, deviceRelativeAcceleration, 0);
+        Log.d("Earth","x" + earthAcc[0] + " y " + earthAcc[1] + " z " + earthAcc[2]);
+
+        return earthAcc;
+
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,9 +85,12 @@ public class MainActivity extends AppCompatActivity
         // Lock the orientation to portrait (for now)
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
-        mTextSensorAzimuth = (TextView) findViewById(R.id.value_azimuth);
-        mTextSensorPitch = (TextView) findViewById(R.id.value_pitch);
-        mTextSensorRoll = (TextView) findViewById(R.id.value_roll);
+        mTextSensorPhoneAccX = (TextView) findViewById(R.id.phone_acc_x);
+        mTextSensorPhoneAccY = (TextView) findViewById(R.id.phone_acc_y);
+        mTextSensorPhoneAccZ = (TextView) findViewById(R.id.phone_acc_z);
+        mTextSensorEarthAccX = (TextView) findViewById(R.id.earth_acc_x);
+        mTextSensorEarthAccY = (TextView) findViewById(R.id.earth_acc_y);
+        mTextSensorEarthAccZ = (TextView) findViewById(R.id.earth_acc_z);
 
         // Get accelerometer and magnetometer sensors from the sensor manager.
         // The getDefaultSensor() method returns null if the sensor
@@ -68,6 +101,8 @@ public class MainActivity extends AppCompatActivity
                 Sensor.TYPE_ACCELEROMETER);
         mSensorMagnetometer = mSensorManager.getDefaultSensor(
                 Sensor.TYPE_MAGNETIC_FIELD);
+        mSensorGravity = mSensorManager.getDefaultSensor(
+                Sensor.TYPE_GRAVITY);
     }
 
     /**
@@ -92,6 +127,10 @@ public class MainActivity extends AppCompatActivity
             mSensorManager.registerListener(this, mSensorMagnetometer,
                     SensorManager.SENSOR_DELAY_NORMAL);
         }
+        if (mSensorManager != null) {
+            mSensorManager.registerListener( this, mSensorGravity,
+                    SensorManager.SENSOR_DELAY_NORMAL);
+        }
     }
 
     @Override
@@ -114,9 +153,29 @@ public class MainActivity extends AppCompatActivity
             case Sensor.TYPE_MAGNETIC_FIELD:
                 mMagnetometerData = sensorEvent.values.clone();
                 break;
+            case Sensor.TYPE_GRAVITY:
+                mGravityData = sensorEvent.values.clone();
+                break;
             default:
                 return;
         }
+
+        Log.i("Original", "x " + mAccelerometerData[0] + " y " + mAccelerometerData[1] + " z " + mAccelerometerData[2]);
+        float[] earthAcc = earthAccelorometer(mAccelerometerData, mMagnetometerData, mGravityData);
+
+        mTextSensorPhoneAccX.setText(getResources().getString(
+                R.string.value_format, mAccelerometerData[0]));
+        mTextSensorPhoneAccY.setText(getResources().getString(
+                R.string.value_format, mAccelerometerData[1]));
+        mTextSensorPhoneAccZ.setText(getResources().getString(
+                R.string.value_format, mAccelerometerData[2]));
+
+        mTextSensorEarthAccX.setText(getResources().getString(
+                R.string.value_format, earthAcc[0]));
+        mTextSensorEarthAccY.setText(getResources().getString(
+                R.string.value_format, earthAcc[1]));
+        mTextSensorEarthAccZ.setText(getResources().getString(
+                R.string.value_format, earthAcc[2]));
 
 //        Log.i(TAG, "Accelerometer: " + Arrays.toString(mAccelerometerData));
 //        Log.i(TAG, "Magnetometer: " + Arrays.toString(mMagnetometerData));
@@ -126,6 +185,8 @@ public class MainActivity extends AppCompatActivity
 
         // Not sure exactly what this does, but populates the matrix with the input data. rotationOK returns true if the
         // .getRotationMatrix method is successful.
+        // "You can transform any vector from the phone's coordinate system to the Earth's coordinate system by
+        // multiplying it with the rotation matrix."
         boolean rotationOK = SensorManager.getRotationMatrix(rotationMatrix,
                 null, mAccelerometerData, mMagnetometerData);
 
@@ -134,7 +195,7 @@ public class MainActivity extends AppCompatActivity
         // If the getRotationMatrix method is successfull run the following code.
         if (rotationOK) {
 
-            Log.i(TAG, Arrays.toString(rotationMatrix));
+//            Log.i(TAG, Arrays.toString(rotationMatrix));
 
             SensorManager.getOrientation(rotationMatrix, orientationValues);
 
@@ -149,13 +210,12 @@ public class MainActivity extends AppCompatActivity
             double rollDeg = orientationValues[2] * (180/Math.PI);
 
             // Append the data to the android view.
-            // TODO What do the curly braces do? Seem to replace R.id..
-            mTextSensorAzimuth.setText(getResources().getString(
-                    R.string.value_format, azimuthDeg));
-            mTextSensorPitch.setText(getResources().getString(
-                    R.string.value_format, pitchDeg));
-            mTextSensorRoll.setText(getResources().getString(
-                    R.string.value_format, rollDeg));
+//            mTextSensorPhoneAccX.setText(getResources().getString(
+//                    R.string.value_format, azimuthDeg));
+//            mTextSensorPhoneAccY.setText(getResources().getString(
+//                    R.string.value_format, pitchDeg));
+//            mTextSensorPhoneAccZ.setText(getResources().getString(
+//                    R.string.value_format, rollDeg));
 
 //            Log.i(TAG, "Azimuth: " + azimuth + " pitch: " + pitch + " roll: " + roll);
         } else {
