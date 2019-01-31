@@ -50,6 +50,38 @@ public class MainActivity extends AppCompatActivity
     private float[] mMagnetometerData = new float[3];
     private float[] mGravityData = new float[3];
 
+    public float[] phoneOrientation(float[] accelorometer, float[] magnetometer, float[] gravity) {
+        float[] rotationMatrix = new float[9];
+
+        // Not sure exactly what this does, but populates the matrix with the input data. rotationOK returns true if the
+        // .getRotationMatrix method is successful.
+        // "You can transform any vector from the phone's coordinate system to the Earth's coordinate system by
+        // multiplying it with the rotation matrix."
+        boolean rotationOK = SensorManager.getRotationMatrix(rotationMatrix,
+          null, accelorometer, magnetometer);
+
+        // Empty Float array to hold the azimuth, pitch, and roll.
+        float orientationValues[] = new float[3];
+
+        // If the getRotationMatrix method is successfull run the following code.
+        if (rotationOK) {
+
+//            Log.i(TAG, Arrays.toString(rotationMatrix));
+
+            SensorManager.getOrientation(rotationMatrix, orientationValues);
+
+            // Azimuth, pitch, and roll in radians, taken from  the .getOrientation method.
+//            float azimuth = orientationValues[0];
+//            float pitch = orientationValues[1];
+//            float roll = orientationValues[2];
+
+            // Azimuth, pitch, and roll are given in radians. Here we convert them to degrees.
+            double azimuthDeg = orientationValues[0] * (180/Math.PI);
+            double pitchDeg = orientationValues[1] * (180/Math.PI);
+            double rollDeg = orientationValues[2] * (180/Math.PI);
+        return null;
+    }
+
 
     public float[] earthAccelorometer(float[] accelerometer, float[] magnetometer, float[] gravity) {
         float[] deviceRelativeAcceleration = new float[4];
