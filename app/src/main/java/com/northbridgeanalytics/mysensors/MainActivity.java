@@ -50,6 +50,17 @@ public class MainActivity extends AppCompatActivity
     private float[] mMagnetometerData = new float[3];
     private float[] mGravityData = new float[3];
 
+    public double[] radiansToDegrees(float[] inputRadians) {
+        double[] outputDegrees = new double[inputRadians.length];
+
+        for (int i=0; i < inputRadians.length; i++) {
+            outputDegrees[i] = inputRadians[i] * (180/Math.PI);
+        }
+
+        return outputDegrees;
+    }
+
+
     public float[] phoneOrientation(float[] accelorometer, float[] magnetometer) {
         float[] rotationMatrix = new float[9];
 
@@ -197,10 +208,11 @@ public class MainActivity extends AppCompatActivity
         Log.i("Original", "x " + mAccelerometerData[0] + " y " + mAccelerometerData[1] + " z " + mAccelerometerData[2]);
         float[] earthAcc = earthAccelorometer(mAccelerometerData, mMagnetometerData, mGravityData);
 
-        float[] phoneOrient = phoneOrientation(mAccelerometerData, mMagnetometerData);
+        float[] phoneOrientationValuesRadians = phoneOrientation(mAccelerometerData, mMagnetometerData);
 
-        // TODO: Add method to change phoneOrient from radians to degrees
-        // TODO: Set the phone's orientation to a  view. 
+        double[] phoneOrientationValuesDegrees = radiansToDegrees(phoneOrientationValuesRadians);
+
+        // TODO: Set the phone's orientation to a  view.
 
         // Display the phone's accelerometer data in the view.
         mTextSensorPhoneAccX.setText(getResources().getString(
