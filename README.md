@@ -6,14 +6,14 @@ orientation.
 
 ![example](http://www.markbuie.com/img/github/phone_orientation.gif)
 
-When the phone is vertical, gravity is being measured on the phone's y-axis, while in
-earth's coordinate system the force of gravity is in the z-axis.
+When the phone is vertical, gravity is being applied on the phone's y-axis, while in
+earth's coordinate system the force of gravity is applied on the z-axis.
 
 When the phone is rotated to the right, the force of gravity on the phone is shifted 
 to the x-axis, while in earth's coordinate systems it remains on the z-axis.
 
 _Note that the delay of the accelerometers is only present in the Android emulator, 
-but no the app_
+but not the app_
 
 ### Device Coordinate System
 
