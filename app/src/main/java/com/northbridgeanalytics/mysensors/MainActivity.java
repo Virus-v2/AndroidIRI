@@ -40,6 +40,9 @@ public class MainActivity extends AppCompatActivity
     private TextView mTextSensorEarthAccX;
     private TextView mTextSensorEarthAccY;
     private TextView mTextSensorEarthAccZ;
+    private TextView mTextSensorPhoneAzimuth;
+    private TextView mTextSensorPhonePitch;
+    private TextView mTextSensorPhoneRoll;
 
     // Very small values for the accelerometer (on all three axes) should
     // be interpreted as 0. This value is the amount of acceptable
@@ -136,6 +139,10 @@ public class MainActivity extends AppCompatActivity
         mTextSensorEarthAccX = (TextView) findViewById(R.id.earth_acc_x);
         mTextSensorEarthAccY = (TextView) findViewById(R.id.earth_acc_y);
         mTextSensorEarthAccZ = (TextView) findViewById(R.id.earth_acc_z);
+        mTextSensorPhoneAzimuth = (TextView) findViewById(R.id.phone_azimuth);
+        mTextSensorPhonePitch = (TextView) findViewById(R.id.phone_pitch);
+        mTextSensorPhoneRoll = (TextView) findViewById(R.id.phone_roll);
+
 
         // Get accelerometer and magnetometer sensors from the sensor manager.
         // The getDefaultSensor() method returns null if the sensor
@@ -205,7 +212,7 @@ public class MainActivity extends AppCompatActivity
                 return;
         }
 
-        Log.i("Original", "x " + mAccelerometerData[0] + " y " + mAccelerometerData[1] + " z " + mAccelerometerData[2]);
+//        Log.i("Original", "x " + mAccelerometerData[0] + " y " + mAccelerometerData[1] + " z " + mAccelerometerData[2]);
         float[] earthAcc = earthAccelorometer(mAccelerometerData, mMagnetometerData, mGravityData);
 
         float[] phoneOrientationValuesRadians = phoneOrientation(mAccelerometerData, mMagnetometerData);
@@ -229,6 +236,15 @@ public class MainActivity extends AppCompatActivity
                 R.string.value_format, earthAcc[1]));
         mTextSensorEarthAccZ.setText(getResources().getString(
                 R.string.value_format, earthAcc[2]));
+
+        // Log the phone orientation
+//        Log.i("Orientation",
+//                "azimuth " + phoneOrientationValuesDegrees[0] +
+//                " pithch " + phoneOrientationValuesDegrees[1] +
+//                " roll " + phoneOrientationValuesDegrees[2]);
+        mTextSensorPhoneAzimuth.setText(getResources().getString(R.string.value_format, phoneOrientationValuesDegrees[0]));
+        mTextSensorPhonePitch.setText(getResources().getString(R.string.value_format, phoneOrientationValuesDegrees[1]));
+        mTextSensorPhoneRoll.setText(getResources().getString(R.string.value_format, phoneOrientationValuesDegrees[2]));
 
     }
 
