@@ -1,5 +1,6 @@
 package com.northbridgeanalytics.mysensors;
 
+// Sources
 // https://code.tutsplus.com/tutorials/using-the-accelerometer-on-android--mobile-22125
 // https://google-developer-training.gitbooks.io/android-developer-advanced-course-practicals/content/unit-1-expand-the-user-experience/lesson-3-sensors/3-2-p-working-with-sensor-based-orientation/3-2-p-working-with-sensor-based-orientation.html
 // https://stackoverflow.com/questions/5464847/transforming-accelerometers-data-from-devices-coordinates-to-real-world-coordi
@@ -21,39 +22,42 @@ import android.widget.TextView;
 public class MainActivity extends AppCompatActivity
         implements SensorEventListener {
 
-    // Default tag for our Log
+    // Default tag for Log
     public static final String TAG ="MyMessage";
 
     // System sensor manager instance.
-    private SensorManager mSensorManager;
+    private SensorManager SensorManager;
 
     // Accelerometer and magnetometer sensors, as retrieved from the
     // sensor manager.
-    private Sensor mSensorAccelerometer;
-    private Sensor mSensorMagnetometer;
-    private Sensor mSensorGravity;
+    private Sensor SensorAccelerometer;
+    private Sensor SensorMagnetometer;
+    private Sensor SensorGravity;
 
     // TextViews to display current sensor values.
-    private TextView mTextSensorPhoneAccX;
-    private TextView mTextSensorPhoneAccY;
-    private TextView mTextSensorPhoneAccZ;
-    private TextView mTextSensorEarthAccX;
-    private TextView mTextSensorEarthAccY;
-    private TextView mTextSensorEarthAccZ;
-    private TextView mTextSensorPhoneAzimuth;
-    private TextView mTextSensorPhonePitch;
-    private TextView mTextSensorPhoneRoll;
+    private TextView TextSensorPhoneAccX;
+    private TextView TextSensorPhoneAccY;
+    private TextView TextSensorPhoneAccZ;
+
+    private TextView TextSensorEarthAccX;
+    private TextView TextSensorEarthAccY;
+    private TextView TextSensorEarthAccZ;
+
+    private TextView TextSensorPhoneAzimuth;
+    private TextView TextSensorPhonePitch;
+    private TextView TextSensorPhoneRoll;
 
     // Very small values for the accelerometer (on all three axes) should
     // be interpreted as 0. This value is the amount of acceptable
     // non-zero drift.
     private static final float VALUE_DRIFT = 0.05f;
 
-    private float[] mAccelerometerData = new float[3];
-    private float[] mMagnetometerData = new float[3];
-    private float[] mGravityData = new float[3];
+    private float[] AccelerometerData = new float[3];
+    private float[] MagnetometerData = new float[3];
+    private float[] GravityData = new float[3];
 
     public double[] radiansToDegrees(float[] inputRadians) {
+
         double[] outputDegrees = new double[inputRadians.length];
 
         for (int i=0; i < inputRadians.length; i++) {
@@ -64,64 +68,55 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-    public float[] phoneOrientation(float[] accelorometer, float[] magnetometer) {
-        float[] rotationMatrix = new float[9];
+    public float[] phoneOrientation(float[] accelerometer, float[] magnetometer) {
 
-        // Not sure exactly what this does, but populates the matrix with the input data. rotationOK returns true if the
+        // Empty Float array to hold the rotation matrix.
+        float[] rotationMatrix = new float[9];
+        // Empty Float array to hold the azimuth, pitch, and roll.
+        float orientationValues[] = new float[3];
+
+        // Not sure exactly how this works, but populates the matrix with the input data. rotationOK returns true if the
         // .getRotationMatrix method is successful.
         // "You can transform any vector from the phone's coordinate system to the Earth's coordinate system by
         // multiplying it with the rotation matrix."
         boolean rotationOK = SensorManager.getRotationMatrix(rotationMatrix,
-                null, accelorometer, magnetometer);
+                null, accelerometer, magnetometer);
 
-        // Empty Float array to hold the azimuth, pitch, and roll.
-        float orientationValues[] = new float[3];
-
-        // If the getRotationMatrix method is successfull run the following code.
+        // If the getRotationMatrix method is successful run the following code,
+        // TODO Do I need this at all?.
         if (rotationOK) {
 
-//            Log.i(TAG, Arrays.toString(rotationMatrix));
-
+            // TODO: Needs to be a method parameter.
             SensorManager.getOrientation(rotationMatrix, orientationValues);
 
-            // Azimuth, pitch, and roll in radians, taken from  the .getOrientation method.
-//            float azimuth = orientationValues[0];
-//            float pitch = orientationValues[1];
-//            float roll = orientationValues[2];
-
-            // Azimuth, pitch, and roll are given in radians. Here we convert them to degrees.
-//            double azimuthDeg = orientationValues[0] * (180 / Math.PI);
-//            double pitchDeg = orientationValues[1] * (180 / Math.PI);
-//            double rollDeg = orientationValues[2] * (180 / Math.PI);
         }
 
         return orientationValues;
     }
 
 
-    public float[] earthAccelorometer(float[] accelerometer, float[] magnetometer, float[] gravity) {
-        float[] deviceRelativeAcceleration = new float[4];
-        deviceRelativeAcceleration[0] = accelerometer[0];
-        deviceRelativeAcceleration[1] = accelerometer[1];
-        deviceRelativeAcceleration[2] = accelerometer[2];
-        deviceRelativeAcceleration[3] = 0;
+    public float[] earthAccelerometer(float[] accelerometer, float[] magnetometer, float[] gravity) {
+        float[] phoneAcceleration = new float[4];
+        phoneAcceleration[0] = accelerometer[0];
+        phoneAcceleration[1] = accelerometer[1];
+        phoneAcceleration[2] = accelerometer[2];
+        phoneAcceleration[3] = 0;
 
         // Change the device relative acceleration values to earth relative values
         // X axis -> East
         // Y axis -> North Pole
         // Z axis -> Sky
 
-        float[] R = new float[16], I = new float[16], earthAcc = new float[16];
+        float[] R = new float[16], I = new float[16], earthAcceleration = new float[16];
 
         SensorManager.getRotationMatrix(R, I, gravity, magnetometer);
 
         float[] inv = new float[16];
 
         android.opengl.Matrix.invertM(inv, 0, R, 0);
-        android.opengl.Matrix.multiplyMV(earthAcc, 0, inv, 0, deviceRelativeAcceleration, 0);
-        Log.d("Earth","x" + earthAcc[0] + " y " + earthAcc[1] + " z " + earthAcc[2]);
+        android.opengl.Matrix.multiplyMV(earthAcceleration, 0, inv, 0, phoneAcceleration, 0);
 
-        return earthAcc;
+        return earthAcceleration;
 
     }
 
@@ -133,27 +128,27 @@ public class MainActivity extends AppCompatActivity
         // Lock the orientation to portrait (for now)
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
-        mTextSensorPhoneAccX = (TextView) findViewById(R.id.phone_acc_x);
-        mTextSensorPhoneAccY = (TextView) findViewById(R.id.phone_acc_y);
-        mTextSensorPhoneAccZ = (TextView) findViewById(R.id.phone_acc_z);
-        mTextSensorEarthAccX = (TextView) findViewById(R.id.earth_acc_x);
-        mTextSensorEarthAccY = (TextView) findViewById(R.id.earth_acc_y);
-        mTextSensorEarthAccZ = (TextView) findViewById(R.id.earth_acc_z);
-        mTextSensorPhoneAzimuth = (TextView) findViewById(R.id.phone_azimuth);
-        mTextSensorPhonePitch = (TextView) findViewById(R.id.phone_pitch);
-        mTextSensorPhoneRoll = (TextView) findViewById(R.id.phone_roll);
+        TextSensorPhoneAccX = (TextView) findViewById(R.id.phone_acc_x);
+        TextSensorPhoneAccY = (TextView) findViewById(R.id.phone_acc_y);
+        TextSensorPhoneAccZ = (TextView) findViewById(R.id.phone_acc_z);
+        TextSensorEarthAccX = (TextView) findViewById(R.id.earth_acc_x);
+        TextSensorEarthAccY = (TextView) findViewById(R.id.earth_acc_y);
+        TextSensorEarthAccZ = (TextView) findViewById(R.id.earth_acc_z);
+        TextSensorPhoneAzimuth = (TextView) findViewById(R.id.phone_azimuth);
+        TextSensorPhonePitch = (TextView) findViewById(R.id.phone_pitch);
+        TextSensorPhoneRoll = (TextView) findViewById(R.id.phone_roll);
 
 
         // Get accelerometer and magnetometer sensors from the sensor manager.
         // The getDefaultSensor() method returns null if the sensor
         // is not available on the device.
-        mSensorManager = (SensorManager) getSystemService(
+        SensorManager = (SensorManager) getSystemService(
                 Context.SENSOR_SERVICE);
-        mSensorAccelerometer = mSensorManager.getDefaultSensor(
+        SensorAccelerometer = SensorManager.getDefaultSensor(
                 Sensor.TYPE_ACCELEROMETER);
-        mSensorMagnetometer = mSensorManager.getDefaultSensor(
+        SensorMagnetometer = SensorManager.getDefaultSensor(
                 Sensor.TYPE_MAGNETIC_FIELD);
-        mSensorGravity = mSensorManager.getDefaultSensor(
+        SensorGravity = SensorManager.getDefaultSensor(
                 Sensor.TYPE_GRAVITY);
     }
 
@@ -171,16 +166,16 @@ public class MainActivity extends AppCompatActivity
         // Check to ensure sensors are available before registering listeners.
         // Both listeners are registered with a "normal" amount of delay
         // (SENSOR_DELAY_NORMAL).
-        if (mSensorAccelerometer != null) {
-            mSensorManager.registerListener(this, mSensorAccelerometer,
+        if (SensorAccelerometer != null) {
+            SensorManager.registerListener(this, SensorAccelerometer,
                     SensorManager.SENSOR_DELAY_NORMAL);
         }
-        if (mSensorMagnetometer != null) {
-            mSensorManager.registerListener(this, mSensorMagnetometer,
+        if (SensorMagnetometer != null) {
+            SensorManager.registerListener(this, SensorMagnetometer,
                     SensorManager.SENSOR_DELAY_NORMAL);
         }
-        if (mSensorManager != null) {
-            mSensorManager.registerListener( this, mSensorGravity,
+        if (SensorManager != null) {
+            SensorManager.registerListener( this, SensorGravity,
                     SensorManager.SENSOR_DELAY_NORMAL);
         }
     }
@@ -191,7 +186,7 @@ public class MainActivity extends AppCompatActivity
 
         // Unregister all sensor listeners in this callback so they don't
         // continue to use resources when the app is stopped.
-        mSensorManager.unregisterListener(this);
+        SensorManager.unregisterListener(this);
     }
 
     @Override
@@ -200,51 +195,47 @@ public class MainActivity extends AppCompatActivity
 
         switch (sensorType) {
             case Sensor.TYPE_ACCELEROMETER:
-                mAccelerometerData = sensorEvent.values.clone();
+                AccelerometerData = sensorEvent.values.clone();
                 break;
             case Sensor.TYPE_MAGNETIC_FIELD:
-                mMagnetometerData = sensorEvent.values.clone();
+                MagnetometerData = sensorEvent.values.clone();
                 break;
             case Sensor.TYPE_GRAVITY:
-                mGravityData = sensorEvent.values.clone();
+                GravityData = sensorEvent.values.clone();
                 break;
             default:
                 return;
         }
 
-//        Log.i("Original", "x " + mAccelerometerData[0] + " y " + mAccelerometerData[1] + " z " + mAccelerometerData[2]);
-        float[] earthAcc = earthAccelorometer(mAccelerometerData, mMagnetometerData, mGravityData);
+//        Log.i("Original", "x " + AccelerometerData[0] + " y " + AccelerometerData[1] + " z " + AccelerometerData[2]);
+        float[] earthAcc = earthAccelerometer(AccelerometerData, MagnetometerData, GravityData);
 
-        float[] phoneOrientationValuesRadians = phoneOrientation(mAccelerometerData, mMagnetometerData);
+        float[] phoneOrientationValuesRadians = phoneOrientation(AccelerometerData, MagnetometerData);
 
         double[] phoneOrientationValuesDegrees = radiansToDegrees(phoneOrientationValuesRadians);
 
         // TODO: Set the phone's orientation to a  view.
 
         // Display the phone's accelerometer data in the view.
-        mTextSensorPhoneAccX.setText(getResources().getString(
-                R.string.value_format, mAccelerometerData[0]));
-        mTextSensorPhoneAccY.setText(getResources().getString(
-                R.string.value_format, mAccelerometerData[1]));
-        mTextSensorPhoneAccZ.setText(getResources().getString(
-                R.string.value_format, mAccelerometerData[2]));
+        TextSensorPhoneAccX.setText(getResources().getString(
+                R.string.value_format, AccelerometerData[0]));
+        TextSensorPhoneAccY.setText(getResources().getString(
+                R.string.value_format, AccelerometerData[1]));
+        TextSensorPhoneAccZ.setText(getResources().getString(
+                R.string.value_format, AccelerometerData[2]));
 
         // Display the phone's accelerometer data in earth's coordinate system.
-        mTextSensorEarthAccX.setText(getResources().getString(
+        TextSensorEarthAccX.setText(getResources().getString(
                 R.string.value_format, earthAcc[0]));
-        mTextSensorEarthAccY.setText(getResources().getString(
+        TextSensorEarthAccY.setText(getResources().getString(
                 R.string.value_format, earthAcc[1]));
-        mTextSensorEarthAccZ.setText(getResources().getString(
+        TextSensorEarthAccZ.setText(getResources().getString(
                 R.string.value_format, earthAcc[2]));
 
-        // Log the phone orientation
-//        Log.i("Orientation",
-//                "azimuth " + phoneOrientationValuesDegrees[0] +
-//                " pithch " + phoneOrientationValuesDegrees[1] +
-//                " roll " + phoneOrientationValuesDegrees[2]);
-        mTextSensorPhoneAzimuth.setText(getResources().getString(R.string.value_format, phoneOrientationValuesDegrees[0]));
-        mTextSensorPhonePitch.setText(getResources().getString(R.string.value_format, phoneOrientationValuesDegrees[1]));
-        mTextSensorPhoneRoll.setText(getResources().getString(R.string.value_format, phoneOrientationValuesDegrees[2]));
+        // Display the phone's orientation data in the view.
+        TextSensorPhoneAzimuth.setText(getResources().getString(R.string.value_format, phoneOrientationValuesDegrees[0]));
+        TextSensorPhonePitch.setText(getResources().getString(R.string.value_format, phoneOrientationValuesDegrees[1]));
+        TextSensorPhoneRoll.setText(getResources().getString(R.string.value_format, phoneOrientationValuesDegrees[2]));
 
     }
 
