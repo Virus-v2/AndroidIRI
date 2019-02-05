@@ -13,6 +13,9 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -27,6 +30,7 @@ public class MainActivity extends AppCompatActivity
 
     // System sensor manager instance.
     private SensorManager SensorManager;
+    private LocationManager locationManager;
 
     // Accelerometer and magnetometer sensors, as retrieved from the
     // sensor manager.
@@ -150,6 +154,8 @@ public class MainActivity extends AppCompatActivity
                 Sensor.TYPE_MAGNETIC_FIELD);
         SensorGravity = SensorManager.getDefaultSensor(
                 Sensor.TYPE_GRAVITY);
+
+        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
     }
 
     /**
@@ -177,6 +183,13 @@ public class MainActivity extends AppCompatActivity
         if (SensorManager != null) {
             SensorManager.registerListener( this, SensorGravity,
                     SensorManager.SENSOR_DELAY_NORMAL);
+        }
+        if (locationManager != null) {
+            // Register the listener with the Location Manager to receive location updates from the GPS only. The second
+            // parameter controls minimum time interval between notifications and the third is the minimum change in
+            // distance between notifications - setting both to zero requests location notifications as frequently as
+            // possible.
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
         }
     }
 
@@ -245,6 +258,29 @@ public class MainActivity extends AppCompatActivity
         TextSensorPhoneRoll.setText(getResources().getString(
                 R.string.value_format, phoneOrientationValuesDegrees[2]));
 
+    }
+
+    // Define a listener that responds to location updates
+    LocationListener locationListener = new LocationListener() {
+        @Override
+        public void onLocationChanged(Location location) {
+            // <code-here> Called when a new location is found by the network location provider.
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+
+        }
+
+        @Override
+        public void onProviderEnabled(String provider) {
+
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {
+
+        }
     }
 
     /**
