@@ -281,7 +281,7 @@ public class MainActivity extends AppCompatActivity
         public void onProviderDisabled(String provider) {
 
         }
-    }
+    };
 
     /**
      * Must be implemented to satisfy the SensorEventListener interface;
