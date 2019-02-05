@@ -207,14 +207,19 @@ public class MainActivity extends AppCompatActivity
                 return;
         }
 
-//        Log.i("Original", "x " + AccelerometerData[0] + " y " + AccelerometerData[1] + " z " + AccelerometerData[2]);
+        // Get the phone's accelerometer values in earth's coordinate system.
+        //
+        // X = East / West
+        // Y = North / South
+        // Z = Up / Down
         float[] earthAcc = earthAccelerometer(AccelerometerData, MagnetometerData, GravityData);
 
+        // Get the phone's orientation - given in radians.
         float[] phoneOrientationValuesRadians = phoneOrientation(AccelerometerData, MagnetometerData);
 
+        // Convert radians to degrees.
         double[] phoneOrientationValuesDegrees = radiansToDegrees(phoneOrientationValuesRadians);
 
-        // TODO: Set the phone's orientation to a  view.
 
         // Display the phone's accelerometer data in the view.
         TextSensorPhoneAccX.setText(getResources().getString(
@@ -233,9 +238,12 @@ public class MainActivity extends AppCompatActivity
                 R.string.value_format, earthAcc[2]));
 
         // Display the phone's orientation data in the view.
-        TextSensorPhoneAzimuth.setText(getResources().getString(R.string.value_format, phoneOrientationValuesDegrees[0]));
-        TextSensorPhonePitch.setText(getResources().getString(R.string.value_format, phoneOrientationValuesDegrees[1]));
-        TextSensorPhoneRoll.setText(getResources().getString(R.string.value_format, phoneOrientationValuesDegrees[2]));
+        TextSensorPhoneAzimuth.setText(getResources().getString(
+                R.string.value_format, phoneOrientationValuesDegrees[0]));
+        TextSensorPhonePitch.setText(getResources().getString(
+                R.string.value_format, phoneOrientationValuesDegrees[1]));
+        TextSensorPhoneRoll.setText(getResources().getString(
+                R.string.value_format, phoneOrientationValuesDegrees[2]));
 
     }
 
