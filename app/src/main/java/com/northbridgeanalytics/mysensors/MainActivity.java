@@ -7,8 +7,10 @@ package com.northbridgeanalytics.mysensors;
 // https://stackoverflow.com/questions/23701546/android-get-accelerometers-on-earth-coordinate-system
 // https://stackoverflow.com/questions/11578636/acceleration-from-devices-coordinate-system-into-absolute-coordinate-system
 
+import android.Manifest;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -16,6 +18,8 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -24,6 +28,8 @@ import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity
         implements SensorEventListener, LocationListener {
+
+    public int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
 
     // Default tag for Log
     public static final String TAG ="MyMessage";
@@ -99,7 +105,6 @@ public class MainActivity extends AppCompatActivity
         // TODO Do I need this at all?.
         if (rotationOK) {
 
-            // TODO: Needs to be a method parameter.
             SensorManager.getOrientation(rotationMatrix, orientationValues);
 
         }
@@ -204,8 +209,24 @@ public class MainActivity extends AppCompatActivity
             // TODO: Check if GPS enabled first?
             // TODO: Disable the listener if no GPS is detected?
             // TODO: Move this to
-            locationManager.requestLocationUpdates(
-              LocationManager.GPS_PROVIDER, 0, 0, this);
+
+            if (ContextCompat.checkSelfPermission(this,
+              Manifest.permission.ACCESS_FINE_LOCATION)
+              != PackageManager.PERMISSION_GRANTED) {
+
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                  Manifest.permission.ACCESS_FINE_LOCATION)) {}
+                else {
+                   ActivityCompat.requestPermissions(this,
+                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                     MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+                }
+
+            } else {
+
+                locationManager.requestLocationUpdates(
+                  LocationManager.GPS_PROVIDER, 0, 0, this);
+            }
         }
     }
 
