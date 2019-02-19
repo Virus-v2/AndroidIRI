@@ -25,12 +25,15 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 
 public class MainActivity extends AppCompatActivity
         implements SensorEventListener, LocationListener {
 
+    // Callback code for GPS permissions.
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
 
     // Default tag for Log
@@ -39,6 +42,17 @@ public class MainActivity extends AppCompatActivity
     // System sensor manager instance.
     private SensorManager SensorManager;
     private LocationManager locationManager;
+
+    // Button to toggle GPS logging.
+    private Button toggleRecordingButton;
+
+    // On click listener for toggle GPS logging.
+    private View.OnClickListener toggleRecordingListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            toggleRecordingClicked();
+        }
+    };
 
     // Accelerometer and magnetometer sensors, as retrieved from the
     // sensor manager.
@@ -76,6 +90,9 @@ public class MainActivity extends AppCompatActivity
     //******************************************************************************************************************
     //                                            BEGIN METHODS
     //******************************************************************************************************************
+
+
+
 
     public double[] radiansToDegrees(float[] inputRadians) {
 
@@ -140,6 +157,11 @@ public class MainActivity extends AppCompatActivity
 
     }
 
+    // When the user clicks toggleRecordingButton, starting recording the sensor values. 
+    private void toggleRecordingClicked() {
+
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -147,6 +169,10 @@ public class MainActivity extends AppCompatActivity
 
         // Lock the orientation to portrait (for now)
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
+        // Set the onClick listener that toggles GPS recording to the button.
+        toggleRecordingButton = findViewById(R.id.toggleRecording);
+        toggleRecordingButton.setOnClickListener(toggleRecordingListener);
 
         TextSensorPhoneAccX = (TextView) findViewById(R.id.phone_acc_x);
         TextSensorPhoneAccY = (TextView) findViewById(R.id.phone_acc_y);
