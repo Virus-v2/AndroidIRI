@@ -50,7 +50,8 @@ public class MainActivity extends AppCompatActivity
         @Override
         public void onClick(View v) {
 
-            // TODO: User needs visual feedback of the current state of the button. 
+            // TODO: User needs visual feedback of the current state of the button.
+            // TODO: Booleans need to be moved to end of function, can they be a return of the function? 
             if (!isToggleRecordingButtonClicked) {
                 toggleRecordingClickedOn();
                 isToggleRecordingButtonClicked = true;
