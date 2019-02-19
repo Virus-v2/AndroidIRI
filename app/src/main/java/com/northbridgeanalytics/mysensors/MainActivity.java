@@ -9,6 +9,7 @@ package com.northbridgeanalytics.mysensors;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
@@ -20,6 +21,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -29,7 +31,7 @@ import android.widget.TextView;
 public class MainActivity extends AppCompatActivity
         implements SensorEventListener, LocationListener {
 
-    public int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+    private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
 
     // Default tag for Log
     public static final String TAG ="MyMessage";
@@ -208,22 +210,38 @@ public class MainActivity extends AppCompatActivity
             // TODO: Check for permission and ask the user for permissions if necessary.
             // TODO: Check if GPS enabled first?
             // TODO: Disable the listener if no GPS is detected?
-            // TODO: Move this to
+            // TODO: We shouldn't ask for permission for the GPS until we press a button to start recording.
+            // TODO: Permissions code should be it's own function.
 
+            // Check if we have permission to use the GPS.
             if (ContextCompat.checkSelfPermission(this,
               Manifest.permission.ACCESS_FINE_LOCATION)
               != PackageManager.PERMISSION_GRANTED) {
 
-                if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                  Manifest.permission.ACCESS_FINE_LOCATION)) {}
+                //
+                if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
+                  Manifest.permission.ACCESS_FINE_LOCATION)) {
+                    showMessageOKCancel("You need to allow access to Contacts",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    requestPermissions(new String[] {Manifest.permission.ACCESS_FINE_LOCATION},
+                                            MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+                                }
+                            });
+                    return;
+                }
                 else {
-                   ActivityCompat.requestPermissions(this,
-                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                     MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+                    // Ask the user for permission to use the GPS.
+                   ActivityCompat.requestPermissions(MainActivity.this,
+                           new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                           MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+                           // MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION is self defined int constant that we will use
+                           // find the results of our permission request in the callback function.
                 }
 
             } else {
-
+                // We have permission, start listening to GPS.
                 locationManager.requestLocationUpdates(
                   LocationManager.GPS_PROVIDER, 0, 0, this);
             }
@@ -237,6 +255,41 @@ public class MainActivity extends AppCompatActivity
         // Unregister all sensor listeners in this callback so they don't
         // continue to use resources when the app is stopped.
         SensorManager.unregisterListener(this);
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // permission was granted, yay! Do the
+                    // camera related task you need to do.
+                } else {
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return;
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request.
+        }
+    }
+
+
+
+    // Creates an alert dialog box on the user's screen.
+    private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {
+        new AlertDialog.Builder(MainActivity.this)
+                .setMessage(message)
+                .setPositiveButton("OK", okListener)
+                .setNegativeButton("Cancel", null)
+                .create()
+                .show();
     }
 
     @Override
