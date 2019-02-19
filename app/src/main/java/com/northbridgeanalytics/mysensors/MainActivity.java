@@ -50,6 +50,7 @@ public class MainActivity extends AppCompatActivity
         @Override
         public void onClick(View v) {
 
+            // TODO: User needs visual feedback of the current state of the button. 
             if (!isToggleRecordingButtonClicked) {
                 toggleRecordingClickedOn();
                 isToggleRecordingButtonClicked = true;
@@ -163,7 +164,7 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    // When the user clicks toggleRecordingButton, starting recording the sensor values.
+    // The user has turned on GPS logging.
     private void toggleRecordingClickedOn() {
         // Register the listener with the Location Manager to receive location updates from the GPS only. The second
         // parameter controls minimum time interval between notifications and the third is the minimum change in
@@ -181,21 +182,23 @@ public class MainActivity extends AppCompatActivity
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
           != PackageManager.PERMISSION_GRANTED) {
 
-            // Ask the user for permission to use the GPS.
+            // Uh-oh we don't have permissions, better ask.
             ActivityCompat.requestPermissions(MainActivity.this,
               new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
               MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-                // MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION is self defined int constant that we will use
-                // find the results of our permission request in the callback function.
+                // MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION is an integer constant that we will use to lookup the
+                // result of this request in the onRequestPermissionsResult() callback.
 
         } else {
-            // We have permission, start listening to GPS.
+            // We already have permission, start listening to GPS.
             locationManager.requestLocationUpdates(
               LocationManager.GPS_PROVIDER, 0, 0, this);
         }
     }
 
+    // The user has switched off GPS logging.
     private void toggleRecordingClickedOff() {
+        // Turns off updates from LocationListener.
         locationManager.removeUpdates(this);
     }
 
