@@ -9,6 +9,7 @@ package com.northbridgeanalytics.mysensors;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
@@ -18,6 +19,7 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -189,11 +191,8 @@ public class MainActivity extends AppCompatActivity
                 // result of this request in the onRequestPermissionsResult() callback.
 
         } else {
-            // We already have permission, start listening to GPS.
-            locationManager.requestLocationUpdates(
-              LocationManager.GPS_PROVIDER, 0, 0, this);
-
-            isToggleRecordingButtonClicked = true;
+            // We already permission, enable the GPS.
+            enableGPS();
         }
     }
 
@@ -202,6 +201,27 @@ public class MainActivity extends AppCompatActivity
         // Turns off updates from LocationListener.
         locationManager.removeUpdates(this);
         isToggleRecordingButtonClicked = false;
+    }
+
+    // Makes sure the GPS is enabled.
+    private void enableGPS() {
+        // Lets see if the user has GPS enabled.
+        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+
+            // No GPS enabled, send the user to the settings screen.
+            // TODO: In some cases, a matching Activity may not exist, so ensure we have a safeguard against this.
+            Intent onGPS = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+            startActivity(onGPS);
+
+        } else {
+
+            // GPS is enabled
+            locationManager.requestLocationUpdates(
+              LocationManager.GPS_PROVIDER, 0, 0, this);
+
+            // Successfully started logging the GPS, set the button as clicked.
+            isToggleRecordingButtonClicked = true;
+        }
     }
 
     //******************************************************************************************************************
@@ -294,7 +314,8 @@ public class MainActivity extends AppCompatActivity
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // The user gave us permission to start listening to GPS.
-                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+//                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+                    enableGPS();
 
                     isToggleRecordingButtonClicked = true;
                 } else {
@@ -406,8 +427,10 @@ public class MainActivity extends AppCompatActivity
     // provider, this method is called immediately.
     @Override
     public void onProviderDisabled(String provider) {
-        // TODO: Add message that the app won't work with GPS disabled.
-        Log.i("Location", "onProviderDisabled fired");
+        // TODO: Add message that the app won't work with GPS disabled, then prompt to turn it on.
+
+        // We have permission, but the GPS is disabled. Lets prompt the user to turn it on.
+        enableGPS();
 
     }
 
