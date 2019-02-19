@@ -88,7 +88,7 @@ public class MainActivity extends AppCompatActivity
 
 
     //******************************************************************************************************************
-    //                                            BEGIN METHODS
+    //                                            BEGIN APP METHODS
     //******************************************************************************************************************
 
 
@@ -157,10 +157,42 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    // When the user clicks toggleRecordingButton, starting recording the sensor values. 
+    // When the user clicks toggleRecordingButton, starting recording the sensor values.
     private void toggleRecordingClicked() {
+        // Register the listener with the Location Manager to receive location updates from the GPS only. The second
+        // parameter controls minimum time interval between notifications and the third is the minimum change in
+        // distance between notifications - setting both to zero requests location notifications as frequently as
+        // possible.
+        // See the following link for LocationManager methods:
+        // https://developer.android.com/reference/android/location/LocationManager.html#removeUpdates(android.location.LocationListener)
+        // TODO: Check for permission and ask the user for permissions if necessary.
+        // TODO: Check if GPS enabled first?
+        // TODO: Disable the listener if no GPS is detected?
+        // TODO: We shouldn't ask for permission for the GPS until we press a button to start recording.
+        // TODO: Permissions code should be it's own function.
 
+        // Check if we have permission to use the GPS and request it if we don't.
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+          != PackageManager.PERMISSION_GRANTED) {
+
+            // Ask the user for permission to use the GPS.
+            ActivityCompat.requestPermissions(MainActivity.this,
+              new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+              MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+                // MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION is self defined int constant that we will use
+                // find the results of our permission request in the callback function.
+
+        } else {
+            // We have permission, start listening to GPS.
+            locationManager.requestLocationUpdates(
+              LocationManager.GPS_PROVIDER, 0, 0, this);
+        }
     }
+
+    //******************************************************************************************************************
+    //                                            BEGIN ANDROID CALLBACKS
+    //******************************************************************************************************************
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -226,53 +258,6 @@ public class MainActivity extends AppCompatActivity
             SensorManager.registerListener( this, SensorGravity,
                     SensorManager.SENSOR_DELAY_NORMAL);
         }
-        if (locationManager != null) {
-            // Register the listener with the Location Manager to receive location updates from the GPS only. The second
-            // parameter controls minimum time interval between notifications and the third is the minimum change in
-            // distance between notifications - setting both to zero requests location notifications as frequently as
-            // possible.
-            // See the following link for LocationManager methods:
-            // https://developer.android.com/reference/android/location/LocationManager.html#removeUpdates(android.location.LocationListener)
-            // TODO: Check for permission and ask the user for permissions if necessary.
-            // TODO: Check if GPS enabled first?
-            // TODO: Disable the listener if no GPS is detected?
-            // TODO: We shouldn't ask for permission for the GPS until we press a button to start recording.
-            // TODO: Permissions code should be it's own function.
-
-            // Check if we have permission to use the GPS.
-            if (ContextCompat.checkSelfPermission(this,
-              Manifest.permission.ACCESS_FINE_LOCATION)
-              != PackageManager.PERMISSION_GRANTED) {
-
-                // Checks if the user has previously denied permissions and offers a rational for the request.
-                // TODO: Doesn't show alert dialog if user pressed don't show again.
-                if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
-                  Manifest.permission.ACCESS_FINE_LOCATION)) {
-                    showMessageOKCancel("You need to allow access to Contacts",
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    requestPermissions(new String[] {Manifest.permission.ACCESS_FINE_LOCATION},
-                                            MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-                                }
-                            });
-                    return;
-                }
-                else {
-                    // Ask the user for permission to use the GPS.
-                   ActivityCompat.requestPermissions(MainActivity.this,
-                           new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                           MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-                           // MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION is self defined int constant that we will use
-                           // find the results of our permission request in the callback function.
-                }
-
-            } else {
-                // We have permission, start listening to GPS.
-                locationManager.requestLocationUpdates(
-                  LocationManager.GPS_PROVIDER, 0, 0, this);
-            }
-        }
     }
 
     @Override
@@ -293,9 +278,10 @@ public class MainActivity extends AppCompatActivity
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // permission was granted, yay! Do the
-                    // camera related task you need to do.
+                    // The user gave us permission to start listening to GPS.
+                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
                 } else {
+                    // TODO: Something needs to happen if they deny permissions.
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
                 }
@@ -305,18 +291,6 @@ public class MainActivity extends AppCompatActivity
             // other 'case' lines to check for other
             // permissions this app might request.
         }
-    }
-
-
-
-    // Creates an alert dialog box on the user's screen.
-    private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {
-        new AlertDialog.Builder(MainActivity.this)
-                .setMessage(message)
-                .setPositiveButton("OK", okListener)
-                .setNegativeButton("Cancel", null)
-                .create()
-                .show();
     }
 
     @Override
@@ -391,14 +365,14 @@ public class MainActivity extends AppCompatActivity
         Log.i("Location", "Lat: " + currentLatitude + "Long: " + currentLongitude);
     }
 
+
     // Called when the provider status changes. This method is called when a provider is unable to fetch a location
     // or if the provider has recently become available after a period of unavailability.
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
         Log.i("Location", "onSatusChanged fired");
-
-
     }
+
 
     // Called when the provider is enabled by the user
     @Override
@@ -406,6 +380,7 @@ public class MainActivity extends AppCompatActivity
         // TODO: Remove message that the app won't work with the GPS disabled.
         Log.i("Location", "onProviderEnabled fired");
     }
+
 
     // Called when the prover is disabled by the user. If requestLocationUpdates is called on an already disabled
     // provider, this method is called immediately.
@@ -415,7 +390,6 @@ public class MainActivity extends AppCompatActivity
         Log.i("Location", "onProviderDisabled fired");
 
     }
-
 
     /**
      * Must be implemented to satisfy the SensorEventListener interface;
