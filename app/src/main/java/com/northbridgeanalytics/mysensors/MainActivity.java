@@ -218,7 +218,8 @@ public class MainActivity extends AppCompatActivity
               Manifest.permission.ACCESS_FINE_LOCATION)
               != PackageManager.PERMISSION_GRANTED) {
 
-                //
+                // Checks if the user has previously denied permissions and offers a rational for the request.
+                // TODO: Doesn't show alert dialog if user pressed don't show again.
                 if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
                   Manifest.permission.ACCESS_FINE_LOCATION)) {
                     showMessageOKCancel("You need to allow access to Contacts",
