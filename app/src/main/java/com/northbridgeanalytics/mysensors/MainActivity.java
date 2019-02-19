@@ -51,13 +51,11 @@ public class MainActivity extends AppCompatActivity
         public void onClick(View v) {
 
             // TODO: User needs visual feedback of the current state of the button.
-            // TODO: Booleans need to be moved to end of function, can they be a return of the function? 
+            // TODO: Booleans need to be moved to end of function, can they be a return of the function?
             if (!isToggleRecordingButtonClicked) {
                 toggleRecordingClickedOn();
-                isToggleRecordingButtonClicked = true;
             } else {
                 toggleRecordingClickedOff();
-                isToggleRecordingButtonClicked = false;
             }
         }
     };
@@ -194,6 +192,8 @@ public class MainActivity extends AppCompatActivity
             // We already have permission, start listening to GPS.
             locationManager.requestLocationUpdates(
               LocationManager.GPS_PROVIDER, 0, 0, this);
+
+            isToggleRecordingButtonClicked = true;
         }
     }
 
@@ -201,6 +201,7 @@ public class MainActivity extends AppCompatActivity
     private void toggleRecordingClickedOff() {
         // Turns off updates from LocationListener.
         locationManager.removeUpdates(this);
+        isToggleRecordingButtonClicked = false;
     }
 
     //******************************************************************************************************************
@@ -294,7 +295,12 @@ public class MainActivity extends AppCompatActivity
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // The user gave us permission to start listening to GPS.
                     locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+
+                    isToggleRecordingButtonClicked = true;
                 } else {
+
+                    isToggleRecordingButtonClicked = false;
+
                     // TODO: Something needs to happen if they deny permissions.
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
