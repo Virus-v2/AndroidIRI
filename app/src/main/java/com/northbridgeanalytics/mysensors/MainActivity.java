@@ -9,7 +9,6 @@ package com.northbridgeanalytics.mysensors;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
@@ -21,7 +20,6 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -45,12 +43,20 @@ public class MainActivity extends AppCompatActivity
 
     // Button to toggle GPS logging.
     private Button toggleRecordingButton;
+    private boolean isToggleRecordingButtonClicked = false;
 
     // On click listener for toggle GPS logging.
     private View.OnClickListener toggleRecordingListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            toggleRecordingClicked();
+
+            if (!isToggleRecordingButtonClicked) {
+                toggleRecordingClickedOn();
+                isToggleRecordingButtonClicked = true;
+            } else {
+                toggleRecordingClickedOff();
+                isToggleRecordingButtonClicked = false;
+            }
         }
     };
 
@@ -158,7 +164,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     // When the user clicks toggleRecordingButton, starting recording the sensor values.
-    private void toggleRecordingClicked() {
+    private void toggleRecordingClickedOn() {
         // Register the listener with the Location Manager to receive location updates from the GPS only. The second
         // parameter controls minimum time interval between notifications and the third is the minimum change in
         // distance between notifications - setting both to zero requests location notifications as frequently as
@@ -187,6 +193,10 @@ public class MainActivity extends AppCompatActivity
             locationManager.requestLocationUpdates(
               LocationManager.GPS_PROVIDER, 0, 0, this);
         }
+    }
+
+    private void toggleRecordingClickedOff() {
+        locationManager.removeUpdates(this);
     }
 
     //******************************************************************************************************************
