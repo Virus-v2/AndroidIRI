@@ -7,6 +7,8 @@ package com.northbridgeanalytics.mysensors;
 // https://stackoverflow.com/questions/23701546/android-get-accelerometers-on-earth-coordinate-system
 // https://stackoverflow.com/questions/11578636/acceleration-from-devices-coordinate-system-into-absolute-coordinate-system
 
+import utils.VectorAlgebra;
+import utils.VectorAlgebra.*;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
@@ -99,71 +101,6 @@ public class MainActivity extends AppCompatActivity
     //                                            BEGIN APP METHODS
     //******************************************************************************************************************
 
-
-
-
-    public double[] radiansToDegrees(float[] inputRadians) {
-
-        double[] outputDegrees = new double[inputRadians.length];
-
-        for (int i=0; i < inputRadians.length; i++) {
-            outputDegrees[i] = inputRadians[i] * (180/Math.PI);
-        }
-
-        return outputDegrees;
-    }
-
-
-    public float[] phoneOrientation(float[] accelerometer, float[] magnetometer) {
-
-        // Empty Float array to hold the rotation matrix.
-        float[] rotationMatrix = new float[9];
-        // Empty Float array to hold the azimuth, pitch, and roll.
-        float orientationValues[] = new float[3];
-
-        // Not sure exactly how this works, but populates the matrix with the input data. rotationOK returns true if the
-        // .getRotationMatrix method is successful.
-        // "You can transform any vector from the phone's coordinate system to the Earth's coordinate system by
-        // multiplying it with the rotation matrix."
-        boolean rotationOK = SensorManager.getRotationMatrix(rotationMatrix,
-                null, accelerometer, magnetometer);
-
-        // If the getRotationMatrix method is successful run the following code,
-        // TODO Do I need this at all?.
-        if (rotationOK) {
-
-            SensorManager.getOrientation(rotationMatrix, orientationValues);
-
-        }
-
-        return orientationValues;
-    }
-
-
-    public float[] earthAccelerometer(float[] accelerometer, float[] magnetometer, float[] gravity) {
-        float[] phoneAcceleration = new float[4];
-        phoneAcceleration[0] = accelerometer[0];
-        phoneAcceleration[1] = accelerometer[1];
-        phoneAcceleration[2] = accelerometer[2];
-        phoneAcceleration[3] = 0;
-
-        // Change the device relative acceleration values to earth relative values
-        // X axis -> East
-        // Y axis -> North Pole
-        // Z axis -> Sky
-
-        float[] R = new float[16], I = new float[16], earthAcceleration = new float[16];
-
-        SensorManager.getRotationMatrix(R, I, gravity, magnetometer);
-
-        float[] inv = new float[16];
-
-        android.opengl.Matrix.invertM(inv, 0, R, 0);
-        android.opengl.Matrix.multiplyMV(earthAcceleration, 0, inv, 0, phoneAcceleration, 0);
-
-        return earthAcceleration;
-
-    }
 
     // The user has turned on GPS logging.
     private void toggleRecordingClickedOn() {
@@ -357,13 +294,13 @@ public class MainActivity extends AppCompatActivity
         // X = East / West
         // Y = North / South
         // Z = Up / Down
-        float[] earthAcc = earthAccelerometer(AccelerometerData, MagnetometerData, GravityData);
+        float[] earthAcc = VectorAlgebra.earthAccelerometer(AccelerometerData, MagnetometerData, GravityData, SensorManager);
 
         // Get the phone's orientation - given in radians.
-        float[] phoneOrientationValuesRadians = phoneOrientation(AccelerometerData, MagnetometerData);
+        float[] phoneOrientationValuesRadians = VectorAlgebra.phoneOrientation(AccelerometerData, MagnetometerData, SensorManager);
 
         // Convert radians to degrees.
-        double[] phoneOrientationValuesDegrees = radiansToDegrees(phoneOrientationValuesRadians);
+        double[] phoneOrientationValuesDegrees = VectorAlgebra.radiansToDegrees(phoneOrientationValuesRadians);
 
 
         // Display the phone's accelerometer data in the view.
