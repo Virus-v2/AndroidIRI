@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity
 
     // Callback code for GPS permissions.
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
-    FragmentManager fm = getSupportFragmentManager();
+    private FragmentManager fm = getSupportFragmentManager();
 
     // Very small values for the accelerometer (on all three axes) should be interpreted as 0. This value is the amount
     // of acceptable non-zero drift.
@@ -159,6 +159,15 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    private void documentResults() {
+        // TODO: Check if x amount of time has passed since last accelerometer data, so we're not logging incorrect values.
+        // TODO: Check if the speed is between x and y.
+        // TODO: If speed is OK, change background color of boarder to green to indicate recording.
+        // TODO: If speed is OK, start logging until length equals the users desired logging distance
+        // TODO: Append line to JSON with Average, Max, Min, Accelarometer, Speed
+        // TODO:
+    }
+
     //******************************************************************************************************************
     //                                            BEGIN ANDROID CALLBACKS
     //******************************************************************************************************************
@@ -220,6 +229,7 @@ public class MainActivity extends AppCompatActivity
         // Check to ensure sensors are available before registering listeners.
         // Both listeners are registered with a "normal" amount of delay
         // (SENSOR_DELAY_NORMAL).
+        // TODO: Need a dialog saying sensors aren't available.
         if (SensorAccelerometer != null) {
             SensorManager.registerListener(this, SensorAccelerometer,
                     SensorManager.SENSOR_DELAY_NORMAL);
@@ -298,6 +308,8 @@ public class MainActivity extends AppCompatActivity
           AccelerometerData, MagnetometerData,
           GravityData, SensorManager);
 
+        // TODO: We also need acceleromter data in user coordinate systmer where y is straight ahead. 
+
         // Get the phone's orientation - given in radians.
         float[] phoneOrientationValuesRadians = VectorAlgebra.phoneOrientation(
           AccelerometerData, MagnetometerData, SensorManager);
@@ -344,6 +356,8 @@ public class MainActivity extends AppCompatActivity
         currentLongitude = location.getLongitude();
 
         Log.i("Location", "Lat: " + currentLatitude + "Long: " + currentLongitude);
+
+        documentResults();
     }
 
 
