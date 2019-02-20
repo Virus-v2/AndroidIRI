@@ -9,7 +9,7 @@ import android.provider.Settings;
 import android.support.v4.app.DialogFragment;
 import com.northbridgeanalytics.mysensors.R;
 
-public class Dialogs extends DialogFragment {
+public class AlertDialogGPS extends DialogFragment {
 
 
     @Override
