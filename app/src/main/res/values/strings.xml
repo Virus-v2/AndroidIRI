@@ -4,4 +4,9 @@
     <string name="label_azimuth_string">Azmiuth:</string>
     <string name="label_pitch_string">Pitch:</string>
     <string name="label_roll_string">Roll:</string>
+    <string name="dialog_gps_setting">
+        It looks like you don\'t have your GPS enabled. Would you like to enable it in Settings?
+    </string>
+    <string name="settings">Settings</string>
+    <string name="cancel">Cancel</string>
 </resources>

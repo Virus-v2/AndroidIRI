@@ -7,6 +7,9 @@ package com.northbridgeanalytics.mysensors;
 // https://stackoverflow.com/questions/23701546/android-get-accelerometers-on-earth-coordinate-system
 // https://stackoverflow.com/questions/11578636/acceleration-from-devices-coordinate-system-into-absolute-coordinate-system
 
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentManager;
+import utils.Dialogs;
 import utils.VectorAlgebra;
 import android.Manifest;
 import android.content.Context;
@@ -39,6 +42,7 @@ public class MainActivity extends AppCompatActivity
 
     // Callback code for GPS permissions.
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+    FragmentManager fm = getSupportFragmentManager();
 
     // Very small values for the accelerometer (on all three axes) should be interpreted as 0. This value is the amount
     // of acceptable non-zero drift.
@@ -137,8 +141,13 @@ public class MainActivity extends AppCompatActivity
 
             // We have permission, but the GPS isn't enabled, send the user to the settings screen.
             // TODO: In some cases, a matching Activity may not exist, so ensure we have a safeguard against this.
-            Intent onGPS = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-            startActivity(onGPS);
+//            Intent onGPS = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+//            startActivity(onGPS);
+
+            Dialogs gpsSettings = new Dialogs();
+            gpsSettings.show(fm, "Alert Dialog");
+
+
 
             // The GPS was not enabled from the button press, so let's change it to false.
             isToggleRecordingButtonClicked = false;
