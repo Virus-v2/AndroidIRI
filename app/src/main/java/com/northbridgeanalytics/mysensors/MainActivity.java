@@ -8,7 +8,6 @@ package com.northbridgeanalytics.mysensors;
 // https://stackoverflow.com/questions/11578636/acceleration-from-devices-coordinate-system-into-absolute-coordinate-system
 
 import utils.VectorAlgebra;
-import utils.VectorAlgebra.*;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
@@ -35,15 +34,47 @@ import android.widget.TextView;
 public class MainActivity extends AppCompatActivity
         implements SensorEventListener, LocationListener {
 
+    // Default tag for Log
+    private static final String TAG ="MyMessage";
+
     // Callback code for GPS permissions.
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
 
-    // Default tag for Log
-    public static final String TAG ="MyMessage";
+    // Very small values for the accelerometer (on all three axes) should be interpreted as 0. This value is the amount
+    // of acceptable non-zero drift.
+    private static final float VALUE_DRIFT = 0.05f;
+
+    // TextViews to display current sensor values.
+    private TextView TextSensorPhoneAccX;
+    private TextView TextSensorPhoneAccY;
+    private TextView TextSensorPhoneAccZ;
+
+    private TextView TextSensorEarthAccX;
+    private TextView TextSensorEarthAccY;
+    private TextView TextSensorEarthAccZ;
+
+    private TextView TextSensorPhoneAzimuth;
+    private TextView TextSensorPhonePitch;
+    private TextView TextSensorPhoneRoll;
 
     // System sensor manager instance.
     private SensorManager SensorManager;
     private LocationManager locationManager;
+
+    // Accelerometer and magnetometer sensors, as retrieved from the
+    // sensor manager.
+    private Sensor SensorAccelerometer;
+    private Sensor SensorMagnetometer;
+    private Sensor SensorGravity;
+
+    // Variables to hold current sensor values.
+    private float[] AccelerometerData = new float[3];
+    private float[] MagnetometerData = new float[3];
+    private float[] GravityData = new float[3];
+
+    // Variables to hold current location values.
+    private double currentLatitude;
+    private double currentLongitude;
 
     // Button to toggle GPS logging.
     private Button toggleRecordingButton;
@@ -64,57 +95,21 @@ public class MainActivity extends AppCompatActivity
         }
     };
 
-    // Accelerometer and magnetometer sensors, as retrieved from the
-    // sensor manager.
-    private Sensor SensorAccelerometer;
-    private Sensor SensorMagnetometer;
-    private Sensor SensorGravity;
-
-    // TextViews to display current sensor values.
-    private TextView TextSensorPhoneAccX;
-    private TextView TextSensorPhoneAccY;
-    private TextView TextSensorPhoneAccZ;
-
-    private TextView TextSensorEarthAccX;
-    private TextView TextSensorEarthAccY;
-    private TextView TextSensorEarthAccZ;
-
-    private TextView TextSensorPhoneAzimuth;
-    private TextView TextSensorPhonePitch;
-    private TextView TextSensorPhoneRoll;
-
-    // Very small values for the accelerometer (on all three axes) should be interpreted as 0. This value is the amount
-    // of acceptable non-zero drift.
-    private static final float VALUE_DRIFT = 0.05f;
-
-    // Variables to hold current sensor values.
-    private float[] AccelerometerData = new float[3];
-    private float[] MagnetometerData = new float[3];
-    private float[] GravityData = new float[3];
-
-    // Variables to hold current location values.
-    private double currentLatitude;
-    private double currentLongitude;
-
 
     //******************************************************************************************************************
     //                                            BEGIN APP METHODS
     //******************************************************************************************************************
 
+    // Stop logging when the user turns off GPS.
+    private void toggleRecordingClickedOff() {
+        // Turns off updates from LocationListener.
+        locationManager.removeUpdates(this);
+        isToggleRecordingButtonClicked = false;
+    }
+
 
     // The user has turned on GPS logging.
     private void toggleRecordingClickedOn() {
-        // Register the listener with the Location Manager to receive location updates from the GPS only. The second
-        // parameter controls minimum time interval between notifications and the third is the minimum change in
-        // distance between notifications - setting both to zero requests location notifications as frequently as
-        // possible.
-        // See the following link for LocationManager methods:
-        // https://developer.android.com/reference/android/location/LocationManager.html#removeUpdates(android.location.LocationListener)
-        // TODO: Check for permission and ask the user for permissions if necessary.
-        // TODO: Check if GPS enabled first?
-        // TODO: Disable the listener if no GPS is detected?
-        // TODO: We shouldn't ask for permission for the GPS until we press a button to start recording.
-        // TODO: Permissions code should be it's own function.
 
         // Check if we have permission to use the GPS and request it if we don't.
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -128,31 +123,33 @@ public class MainActivity extends AppCompatActivity
                 // result of this request in the onRequestPermissionsResult() callback.
 
         } else {
-            // We already permission, enable the GPS.
+            // We already have permission, so let's enable the GPS.
             enableGPS();
+
         }
     }
 
-    // The user has switched off GPS logging.
-    private void toggleRecordingClickedOff() {
-        // Turns off updates from LocationListener.
-        locationManager.removeUpdates(this);
-        isToggleRecordingButtonClicked = false;
-    }
 
-    // Makes sure the GPS is enabled.
+    // After we get permission, enable the GPS.
     private void enableGPS() {
         // Lets see if the user has GPS enabled.
         if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
 
-            // No GPS enabled, send the user to the settings screen.
+            // We have permission, but the GPS isn't enabled, send the user to the settings screen.
             // TODO: In some cases, a matching Activity may not exist, so ensure we have a safeguard against this.
             Intent onGPS = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
             startActivity(onGPS);
 
+            // The GPS was not enabled from the button press, so let's change it to false.
+            isToggleRecordingButtonClicked = false;
+
         } else {
 
-            // GPS is enabled
+            // We have permission and GPS is enabled, let's start logging.
+            // Register the listener with the Location Manager to receive location updates from the GPS only. The second
+            // parameter controls minimum time interval between notifications and the third is the minimum change in
+            // distance between notifications - setting both to zero requests location notifications as frequently as
+            // possible.
             locationManager.requestLocationUpdates(
               LocationManager.GPS_PROVIDER, 0, 0, this);
 
@@ -172,12 +169,16 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         // Lock the orientation to portrait (for now)
+        // TODO: Support screen rotation?
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
-        // Set the onClick listener that toggles GPS recording to the button.
+        // Get the start recording button view.
         toggleRecordingButton = findViewById(R.id.toggleRecording);
+
+        // Set the onClick listener for the start recording button view.
         toggleRecordingButton.setOnClickListener(toggleRecordingListener);
 
+        // Get the TextViews that will show the sensor values.
         TextSensorPhoneAccX = (TextView) findViewById(R.id.phone_acc_x);
         TextSensorPhoneAccY = (TextView) findViewById(R.id.phone_acc_y);
         TextSensorPhoneAccZ = (TextView) findViewById(R.id.phone_acc_z);
@@ -189,9 +190,8 @@ public class MainActivity extends AppCompatActivity
         TextSensorPhoneRoll = (TextView) findViewById(R.id.phone_roll);
 
 
-        // Get accelerometer and magnetometer sensors from the sensor manager.
-        // The getDefaultSensor() method returns null if the sensor
-        // is not available on the device.
+        // Get accelerometer and magnetometer sensors from the sensor manager. The getDefaultSensor() method returns
+        // null if the sensor is not available on the device.
         SensorManager = (SensorManager) getSystemService(
                 Context.SENSOR_SERVICE);
         SensorAccelerometer = SensorManager.getDefaultSensor(
@@ -201,6 +201,7 @@ public class MainActivity extends AppCompatActivity
         SensorGravity = SensorManager.getDefaultSensor(
                 Sensor.TYPE_GRAVITY);
 
+        // Get the LocationManager.
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
     }
 
@@ -250,13 +251,14 @@ public class MainActivity extends AppCompatActivity
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // The user gave us permission to start listening to GPS.
-//                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+
+                    // We asked the user for permission and they said yes.
                     enableGPS();
 
-                    isToggleRecordingButtonClicked = true;
                 } else {
+                    // Darn, they said no.
 
+                    // Since nothing resulted from the button press, lets make it false.
                     isToggleRecordingButtonClicked = false;
 
                     // TODO: Something needs to happen if they deny permissions.
@@ -265,9 +267,6 @@ public class MainActivity extends AppCompatActivity
                 }
                 return;
             }
-
-            // other 'case' lines to check for other
-            // permissions this app might request.
         }
     }
 

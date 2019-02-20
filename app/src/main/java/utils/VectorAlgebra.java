@@ -46,7 +46,7 @@ public class VectorAlgebra {
 
 
     /**
-     * Returns the phone's orientation values in radians. 
+     * Returns the phone's orientation values in radians.
      *
      * @param accelerometer
      * @param magnetometer
