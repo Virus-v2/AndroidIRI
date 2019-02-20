@@ -1,10 +1,25 @@
 package utils;
 
+import android.hardware.Sensor;
 import android.hardware.SensorManager;
 
 public class VectorAlgebra {
 
+    /**
+     * Converts accelerometer readings from the Phone's xyz coordinates to the Earth's coodrinate system.
+     *
+     * X axis = East / West
+     * Y axis = North / South magnetic pole
+     * Z axis = Up / Down
+     *
+     * @param accelerometer float[] An array containing the phone's accelerometer data [0:X, 1:Y, 2:Z]
+     * @param magnetometer float[]
+     * @param gravity float[]
+     * @param sensorManager SensorManager Android SensorManager
+     * @return
+     */
     public static float[] earthAccelerometer(float[] accelerometer, float[] magnetometer, float[] gravity, SensorManager sensorManager) {
+
         float[] phoneAcceleration = new float[4];
         phoneAcceleration[0] = accelerometer[0];
         phoneAcceleration[1] = accelerometer[1];
@@ -30,17 +45,14 @@ public class VectorAlgebra {
     }
 
 
-    public static double[] radiansToDegrees(float[] inputRadians) {
-
-        double[] outputDegrees = new double[inputRadians.length];
-
-        for (int i=0; i < inputRadians.length; i++) {
-            outputDegrees[i] = inputRadians[i] * (180/Math.PI);
-        }
-
-        return outputDegrees;
-    }
-
+    /**
+     * Returns the phone's orientation values in radians. 
+     *
+     * @param accelerometer
+     * @param magnetometer
+     * @param sensorManager
+     * @return
+     */
     public static float[] phoneOrientation(float[] accelerometer, float[] magnetometer, SensorManager sensorManager) {
 
         // Empty Float array to hold the rotation matrix.
@@ -66,4 +78,21 @@ public class VectorAlgebra {
         return orientationValues;
     }
 
+
+    /**
+     * Converts phone orientation values from radians to degrees.
+     *
+     * @param inputRadians float[] An array of orientation values.
+     * @return
+     */
+    public static double[] radiansToDegrees(float[] inputRadians) {
+
+        double[] outputDegrees = new double[inputRadians.length];
+
+        for (int i=0; i < inputRadians.length; i++) {
+            outputDegrees[i] = inputRadians[i] * (180/Math.PI);
+        }
+
+        return outputDegrees;
+    }
 }
