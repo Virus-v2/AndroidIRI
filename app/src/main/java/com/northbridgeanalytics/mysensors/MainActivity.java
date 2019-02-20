@@ -294,12 +294,15 @@ public class MainActivity extends AppCompatActivity
         // X = East / West
         // Y = North / South
         // Z = Up / Down
-        float[] earthAcc = VectorAlgebra.earthAccelerometer(AccelerometerData, MagnetometerData, GravityData, SensorManager);
+        float[] earthAcc = VectorAlgebra.earthAccelerometer(
+          AccelerometerData, MagnetometerData,
+          GravityData, SensorManager);
 
         // Get the phone's orientation - given in radians.
-        float[] phoneOrientationValuesRadians = VectorAlgebra.phoneOrientation(AccelerometerData, MagnetometerData, SensorManager);
+        float[] phoneOrientationValuesRadians = VectorAlgebra.phoneOrientation(
+          AccelerometerData, MagnetometerData, SensorManager);
 
-        // Convert radians to degrees.
+        // Phone's orientation is given in radians, lets convert that to degrees.
         double[] phoneOrientationValuesDegrees = VectorAlgebra.radiansToDegrees(phoneOrientationValuesRadians);
 
 
