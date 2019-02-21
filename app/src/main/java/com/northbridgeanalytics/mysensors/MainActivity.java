@@ -7,6 +7,7 @@ package com.northbridgeanalytics.mysensors;
 // https://stackoverflow.com/questions/23701546/android-get-accelerometers-on-earth-coordinate-system
 // https://stackoverflow.com/questions/11578636/acceleration-from-devices-coordinate-system-into-absolute-coordinate-system
 
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -252,9 +253,13 @@ public class MainActivity extends AppCompatActivity
 
                 Log.i("Settings", "Settings fired.");
 
-                getSupportFragmentManager()
-                  .beginTransaction()
-                  .replace(R.id.frameLayout, new SettingsFragment())
+//                getSupportFragmentManager()
+//                  .beginTransaction()
+//                  .replace(R.id.frameLayout, new SettingsFragment())
+//                  .commit();
+
+                fm.beginTransaction()
+                  .add(R.id.frameLayout, new SettingsFragment())
                   .commit();
 
                 return true;
