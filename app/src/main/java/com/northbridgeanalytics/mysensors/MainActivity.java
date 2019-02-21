@@ -10,6 +10,7 @@ package com.northbridgeanalytics.mysensors;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
+import android.view.MenuItem;
 import utils.AlertDialogGPS;
 import utils.VectorAlgebra;
 import android.Manifest;
@@ -223,6 +224,33 @@ public class MainActivity extends AppCompatActivity
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.my_toolbar_menu, menu);
         return true;
+    }
+
+    /**
+     * App bar items callback.
+     *
+     * This method is called when the user selects one of the app bar items, and passes a MenuItem object to indicate
+     * which item was clicked. The ID returned from MenutItem.getItemId() matches the id you declared for the app bar
+     * item in res/menu/<-menu.xml->
+     *
+     * @param item MenuItem callback object to indicate which item was clicked. Use MenuItem.getItemId() to get value.
+     * @return
+     */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                // User chose the Settings item, show the app settings UI.
+
+                Log.i("Settings", "Settings fired.");
+
+                return true;
+
+            default:
+                // If we got here, the user's action was not recognized.
+                // Invoke the superclass to handle it.
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     /**
