@@ -180,6 +180,8 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Create the app bar. App bar menu items are handled in the onCreateOptionsMenu() callback.
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
 
@@ -220,6 +222,12 @@ public class MainActivity extends AppCompatActivity
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
     }
 
+    /**
+     * Callback for inflating the app bar items.
+     *
+     * @param menu
+     * @return
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.my_toolbar_menu, menu);
