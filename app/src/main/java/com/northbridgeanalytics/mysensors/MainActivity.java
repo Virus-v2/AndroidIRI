@@ -252,6 +252,11 @@ public class MainActivity extends AppCompatActivity
 
                 Log.i("Settings", "Settings fired.");
 
+                getSupportFragmentManager()
+                  .beginTransaction()
+                  .replace(R.id.frameLayout, new SettingsFragment())
+                  .commit();
+
                 return true;
 
             default:
