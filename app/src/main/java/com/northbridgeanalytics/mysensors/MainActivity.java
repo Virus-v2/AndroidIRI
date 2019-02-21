@@ -8,6 +8,7 @@ package com.northbridgeanalytics.mysensors;
 // https://stackoverflow.com/questions/11578636/acceleration-from-devices-coordinate-system-into-absolute-coordinate-system
 
 import android.support.v4.app.FragmentManager;
+import android.support.v7.widget.Toolbar;
 import utils.AlertDialogGPS;
 import utils.VectorAlgebra;
 import android.Manifest;
@@ -177,6 +178,8 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
+        setSupportActionBar(myToolbar);
 
         // Lock the orientation to portrait (for now)
         // TODO: Support screen rotation?
