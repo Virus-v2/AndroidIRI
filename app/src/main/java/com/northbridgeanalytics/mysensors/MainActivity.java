@@ -9,6 +9,7 @@ package com.northbridgeanalytics.mysensors;
 
 import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.Toolbar;
+import android.view.Menu;
 import utils.AlertDialogGPS;
 import utils.VectorAlgebra;
 import android.Manifest;
@@ -216,6 +217,12 @@ public class MainActivity extends AppCompatActivity
 
         // Get the LocationManager.
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.my_toolbar_menu, menu);
+        return true;
     }
 
     /**
