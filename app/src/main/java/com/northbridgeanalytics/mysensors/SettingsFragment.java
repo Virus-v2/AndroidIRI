@@ -1,7 +1,10 @@
 package com.northbridgeanalytics.mysensors;
 
 
+import android.graphics.Color;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.preference.PreferenceFragmentCompat;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,10 +19,9 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = super.onCreateView(inflater, container, savedInstanceState);
-        view.setBackgroundColor(getResources().getColor(android.R.color.white));
-        return view;
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        getListView().setBackgroundColor(Color.WHITE);
     }
 
 }
