@@ -7,6 +7,8 @@ package com.northbridgeanalytics.mysensors;
 // https://stackoverflow.com/questions/23701546/android-get-accelerometers-on-earth-coordinate-system
 // https://stackoverflow.com/questions/11578636/acceleration-from-devices-coordinate-system-into-absolute-coordinate-system
 
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.Toolbar;
@@ -33,6 +35,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+
+import static android.preference.PreferenceManager.getDefaultSharedPreferences;
 
 
 public class MainActivity extends AppCompatActivity
@@ -131,6 +135,13 @@ public class MainActivity extends AppCompatActivity
             // We already have permission, so let's enable the GPS.
             enableGPS();
 
+            // TODO: Put this in a function, everytime we start the logging we need to check the preference.
+            SharedPreferences test = getDefaultSharedPreferences(this);
+            boolean testing = test.getBoolean("preference_filename_json", false);
+
+            Log.i("Preference", "Esri is " + testing);
+
+
         }
     }
 
@@ -173,7 +184,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     //******************************************************************************************************************
-    //                                            BEGIN ANDROID CALLBACKS
+    //                                            BEGIN ACTIVITY LIFECYCLE
     //******************************************************************************************************************
 
 
@@ -217,7 +228,77 @@ public class MainActivity extends AppCompatActivity
 
         // Get the LocationManager.
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+
+        Log.i("Activity", "OnCreate has fired");
     }
+
+    /**
+     * Listeners for the sensors are registered in this callback so that
+     * they can be unregistered in onStop().
+     */
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        // Listeners for the sensors are registered in this callback and
+        // can be unregistered in onStop().
+        //
+        // Check to ensure sensors are available before registering listeners.
+        // Both listeners are registered with a "normal" amount of delay
+        // (SENSOR_DELAY_NORMAL).
+        // TODO: Need a dialog saying sensors aren't available.
+        if (SensorAccelerometer != null) {
+            SensorManager.registerListener(this, SensorAccelerometer,
+              SensorManager.SENSOR_DELAY_NORMAL);
+        }
+        if (SensorMagnetometer != null) {
+            SensorManager.registerListener(this, SensorMagnetometer,
+              SensorManager.SENSOR_DELAY_NORMAL);
+        }
+        if (SensorManager != null) {
+            SensorManager.registerListener( this, SensorGravity,
+              SensorManager.SENSOR_DELAY_NORMAL);
+        }
+
+        Log.i("Activity", "OnStart has fired");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        Log.i("Activity", "onResume has fired");
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        Log.i("Activity", "onPause has fired");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        // Unregister all sensor listeners in this callback so they don't
+        // continue to use resources when the app is stopped.
+        SensorManager.unregisterListener(this);
+
+        Log.i("Activity", "OnStop has fired");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        Log.i("Activity", "onDestroy has fired");
+    }
+
+    //******************************************************************************************************************
+    //                                                BEGIN APP BAR
+    //******************************************************************************************************************
 
     /**
      * Callback for inflating the app bar items.
@@ -262,43 +343,11 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    /**
-     * Listeners for the sensors are registered in this callback so that
-     * they can be unregistered in onStop().
-     */
-    @Override
-    protected void onStart() {
-        super.onStart();
 
-        // Listeners for the sensors are registered in this callback and
-        // can be unregistered in onStop().
-        //
-        // Check to ensure sensors are available before registering listeners.
-        // Both listeners are registered with a "normal" amount of delay
-        // (SENSOR_DELAY_NORMAL).
-        // TODO: Need a dialog saying sensors aren't available.
-        if (SensorAccelerometer != null) {
-            SensorManager.registerListener(this, SensorAccelerometer,
-                    SensorManager.SENSOR_DELAY_NORMAL);
-        }
-        if (SensorMagnetometer != null) {
-            SensorManager.registerListener(this, SensorMagnetometer,
-                    SensorManager.SENSOR_DELAY_NORMAL);
-        }
-        if (SensorManager != null) {
-            SensorManager.registerListener( this, SensorGravity,
-                    SensorManager.SENSOR_DELAY_NORMAL);
-        }
-    }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-
-        // Unregister all sensor listeners in this callback so they don't
-        // continue to use resources when the app is stopped.
-        SensorManager.unregisterListener(this);
-    }
+    //******************************************************************************************************************
+    //                                            BEGIN PERMISSIONS
+    //******************************************************************************************************************
 
 
     @Override
@@ -327,6 +376,14 @@ public class MainActivity extends AppCompatActivity
             }
         }
     }
+
+
+
+    //******************************************************************************************************************
+    //                                            BEGIN SENSOR CALLBACKS
+    //******************************************************************************************************************
+
+    //*********************************************   SENSORS   ********************************************************
 
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
@@ -392,6 +449,19 @@ public class MainActivity extends AppCompatActivity
     }
 
 
+    /**
+     * Must be implemented to satisfy the SensorEventListener interface;
+     * unused in this app.
+     */
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int i) {
+
+
+    }
+
+
+    //*********************************************   location   *******************************************************
+
     // Called when the location has changed.
     @Override
     public void onLocationChanged(Location location) {
@@ -432,16 +502,6 @@ public class MainActivity extends AppCompatActivity
 
         // We have permission, but the GPS is disabled. Lets prompt the user to turn it on.
         enableGPS();
-
-    }
-
-    /**
-     * Must be implemented to satisfy the SensorEventListener interface;
-     * unused in this app.
-     */
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int i) {
-
 
     }
 }
