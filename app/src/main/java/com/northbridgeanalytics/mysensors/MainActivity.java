@@ -182,10 +182,6 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Create the app bar. App bar menu items are handled in the onCreateOptionsMenu() callback.
-        Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
-        setSupportActionBar(myToolbar);
-
         // Lock the orientation to portrait (for now)
         // TODO: Support screen rotation?
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -251,15 +247,10 @@ public class MainActivity extends AppCompatActivity
             case R.id.action_settings:
                 // User chose the Settings item, show the app settings UI.
 
-                Log.i("Settings", "Settings fired.");
-
-//                getSupportFragmentManager()
-//                  .beginTransaction()
-//                  .replace(R.id.frameLayout, new SettingsFragment())
-//                  .commit();
-
-                fm.beginTransaction()
-                  .add(R.id.frameLayout, new SettingsFragment())
+                getSupportFragmentManager()
+                  .beginTransaction()
+                  .replace(R.id.preferenceFragment, new SettingsFragment())
+                  .addToBackStack(null)
                   .commit();
 
                 return true;
