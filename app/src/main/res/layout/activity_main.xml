@@ -8,32 +8,17 @@
         android:layout_height="match_parent"
         tools:context=".MainActivity">
 
-    <LinearLayout
-            android:orientation="vertical"
-            tools:layout_editor_absoluteY="9dp"
-            tools:layout_editor_absoluteX="8dp" android:layout_width="match_parent"
+    <FrameLayout
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:layout_constraintEnd_toStartOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintTop_toBottomOf="parent">
-        <android.support.v7.widget.Toolbar
-                android:id="@+id/my_toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:background="?attr/colorPrimary"
-                android:elevation="4dp"
-                android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
-                app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-                app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"/>
         <android.support.constraint.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" android:id="@+id/frameLayout"
-                app:layout_constraintEnd_toStartOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintTop_toBottomOf="parent">
+        >
 
             <TextView
                     android:text="Y"
@@ -189,14 +174,6 @@
                     android:id="@+id/textView5" app:layout_constraintEnd_toStartOf="@+id/phone_azimuth"
                     app:layout_constraintTop_toTopOf="@+id/phone_azimuth"
             />
-            <Button
-                    android:text="Button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/toggleRecording" app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent" android:layout_marginStart="8dp"
-                    app:layout_constraintHorizontal_bias="0.51"
-                    app:layout_constraintBottom_toBottomOf="parent" android:layout_marginBottom="212dp"/>
             <TextView
                     android:text="Z: "
                     android:layout_width="wrap_content"
@@ -217,11 +194,23 @@
                     android:text="Button"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/button" android:layout_marginTop="8dp"
-                    app:layout_constraintTop_toBottomOf="@+id/toggleRecording"
-                    app:layout_constraintStart_toStartOf="@+id/toggleRecording" android:layout_marginStart="8dp"/>
+                    android:id="@+id/toggleRecording" app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent" android:layout_marginStart="8dp"
+                    app:layout_constraintHorizontal_bias="0.51"
+                    app:layout_constraintBottom_toBottomOf="parent" android:layout_marginBottom="212dp"/>
+
 
         </android.support.constraint.ConstraintLayout>
-    </LinearLayout>
+        <android.support.constraint.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/preferenceFragment"
+                app:layout_constraintTop_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
 
+
+        </android.support.constraint.ConstraintLayout>
+    </FrameLayout>
 </android.support.constraint.ConstraintLayout>
