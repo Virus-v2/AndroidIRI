@@ -1,22 +1,16 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat">
+    <style name="AppTheme" parent="Theme.AppCompat.Light">
         <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
-        <item name="android:windowBackground">@color/colorPrimary</item>
+        <!--<item name="colorPrimary">@color/colorPrimary</item>-->
+        <!--<item name="colorPrimaryDark">@color/colorPrimaryDark</item>-->
+        <!--<item name="colorAccent">@color/colorAccent</item>-->
+        <!--<item name="android:windowBackground">@color/colorPrimary</item>-->
 
-        <!-- Theme for the Preferences -->
-        <!--<item name="preferenceTheme">@style/PreferenceThemeOverlay</item>-->
+        <!--Needed for preferences fragment-->
+        <item name="preferenceTheme">@style/PreferenceThemeOverlay.v14.Material</item>
 
-    </style>
-
-    <style name="test" parent="Theme.AppCompat.Light">
-        <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
     </style>
 
 </resources>
