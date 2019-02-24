@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.preference.PreferenceScreen
+<PreferenceScreen
         xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <android.support.v7.preference.PreferenceCategory
+    <PreferenceCategory
             android:title="Logging">
 
-        <android.support.v7.preference.SwitchPreferenceCompat
+        <SwitchPreferenceCompat
                 android:key="preference_logging_units"
                 android:title="Units"
                 android:summary="Meters / Feet"
                 android:defaultValue="true" />
 
         <!--TODO: inputType does not work with PreferenceFragmentCompat-->
-        <android.support.v7.preference.EditTextPreference
+        <EditTextPreference
                 android:key="preference_logging_distance"
                 android:title="Logging Distance"
                 android:summary="Road distance to average acceleration."
@@ -20,7 +20,7 @@
                 android:inputType="number"
                 android:defaultValue="1000" />
 
-        <android.support.v7.preference.EditTextPreference
+        <EditTextPreference
                 android:key="preference_logging_max_speed"
                 android:title="Max Speed"
                 android:summary="No logging above this speed."
@@ -29,31 +29,31 @@
                 android:defaultValue="80" />
 
 
-        <android.support.v7.preference.EditTextPreference
+        <EditTextPreference
                 android:key="preference_logging_min_speed"
                 android:title="Min speed"
                 android:summary="No logging below this speed."
                 android:dialogMessage="Recommended 20mph"
                 android:inputType="number"
                 android:defaultValue="20" />
-    </android.support.v7.preference.PreferenceCategory>
+    </PreferenceCategory>
 
-    <android.support.v7.preference.PreferenceCategory
+    <PreferenceCategory
             android:title="Log File">
 
-        <android.support.v7.preference.SwitchPreferenceCompat
+        <SwitchPreferenceCompat
                 android:key="preference_filename_json"
                 android:title="Enable Esri JSON"
                 android:summary="Switch between geoJSON and Esri JSON."
                 android:defaultValue="true" />
 
-        <android.support.v7.preference.EditTextPreference
+        <EditTextPreference
                 android:key="preference_filename_prefix"
                 android:title="Set File Prefix"
                 android:summary="Prefix for output filename"
                 android:dialogMessage="Filename will include prefix + date of logging."
                 android:defaultValue="AndroidIRI" />
-    </android.support.v7.preference.PreferenceCategory>
+    </PreferenceCategory>
 
-</android.support.v7.preference.PreferenceScreen>
+</PreferenceScreen>
 
