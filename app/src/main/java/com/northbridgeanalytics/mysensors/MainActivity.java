@@ -8,10 +8,7 @@ package com.northbridgeanalytics.mysensors;
 // https://stackoverflow.com/questions/11578636/acceleration-from-devices-coordinate-system-into-absolute-coordinate-system
 
 import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import utils.AlertDialogGPS;
@@ -196,6 +193,18 @@ public class MainActivity extends AppCompatActivity
         // TODO: If speed is OK, start logging until length equals the users desired logging distance
         // TODO: Append line to JSON with Average, Max, Min, Accelarometer, Speed
         // TODO:
+
+        // Check if we are between max and min speed set by the user.
+        //    If we are not
+        //         check if we were already logging
+        //            If we were logging, check if we lost GPS or went below speed
+        //            If we lost speed finallize the results or throw them out depending on user setting.
+        //            If we lost GPS, throw out the results, as we don't know if the user exceeded the speed limits.
+        // If we are within speed,
+        //    Check if the GPS is logging.
+        //    check if we are already logging.
+        //    If we are, check if we've reached the distance threshold.
+        //    If we aren't, start a new log file.
     }
 
     //******************************************************************************************************************
