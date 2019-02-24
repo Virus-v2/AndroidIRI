@@ -135,11 +135,7 @@ public class MainActivity extends AppCompatActivity
             // We already have permission, so let's enable the GPS.
             enableGPS();
 
-            // TODO: Put this in a function, everytime we start the logging we need to check the preference.
-            SharedPreferences test = getDefaultSharedPreferences(this);
-            boolean testing = test.getBoolean("preference_filename_json", false);
 
-            Log.i("Preference", "Esri is " + testing);
 
 
         }
@@ -172,6 +168,25 @@ public class MainActivity extends AppCompatActivity
             // Successfully started logging the GPS, set the button as clicked.
             isToggleRecordingButtonClicked = true;
         }
+    }
+
+    private void getLoggingSettings() {
+
+        SharedPreferences settings = getDefaultSharedPreferences(this);
+
+        // Get settings settings about file type.
+        boolean isEsriJASON = settings.getBoolean("preference_filename_json", false);
+        String loggingFilePrefix = settings.getString("preference_filename_prefix", "androidIRI");
+
+        // Get settings about logging variables.
+        boolean loggingUnits = settings.getBoolean("preference_logging_units", true);
+        int maxLoggingDistance = Integer.parseInt(
+                settings.getString("preference_logging_distance", "1000"));
+        int maxLoggingSpeed = Integer.parseInt(
+                settings.getString("preference_logging_max_Speed", "80"));
+        int minLoggingSpeed = Integer.parseInt(
+                settings.getString("preference_logging_min_speed", "20"));
+
     }
 
     private void documentResults() {
