@@ -1,4 +1,4 @@
-package utils;
+package myAlerts;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
