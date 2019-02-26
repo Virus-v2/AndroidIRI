@@ -1,4 +1,4 @@
-package utils;
+package SurfaceDoctor;
 
 import android.hardware.SensorManager;
 
