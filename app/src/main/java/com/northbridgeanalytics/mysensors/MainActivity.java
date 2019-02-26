@@ -32,8 +32,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-
 import static android.preference.PreferenceManager.getDefaultSharedPreferences;
+
+// TODO: https://blog.fossasia.org/comparing-different-graph-view-libraries-and-integrating-them-in-pslab-android-application/
 
 
 public class MainActivity extends AppCompatActivity
