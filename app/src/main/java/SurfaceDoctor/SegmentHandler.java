@@ -53,9 +53,16 @@ public class SegmentHandler {
         lineSpeed = currentLocation.getSpeed();
     }
 
-    
-    public static void updateSegmentDistance() {
+
+    public static void appendSegmentDistance() {
         currentDistance += lineDistance;
+    }
+
+    public static void appendSegmentAccelerometer() {
+        //TODO: Best way to add a value to an array.
+//         totalAccelerometerX += currentAccelerometer[0];
+//         totalAccelerometerY += currentAccelerometer[1];
+//         totalAccelerometerZ += currentAccelerometer[2];
     }
 
 
@@ -69,7 +76,7 @@ public class SegmentHandler {
 
         boolean isWithinSpeed = false;
 
-        if (minSpeed >= currentSpeed && currentSpeed <= maxSpeed) {
+        if (minSpeed >= lineSpeed && lineSpeed <= maxSpeed) {
             isWithinSpeed = true;
         }
 
@@ -109,4 +116,13 @@ public class SegmentHandler {
 
     }
 
+    public static void executeSurfaceDoctorLogic() {
+
+        if (isWithinSpeed()) {
+            if (isSegmentLogging()) {
+
+            }
+        }
+
+    }
 }
