@@ -9,34 +9,59 @@ public class SegmentHandler {
     private static int maxSpeed;
     private static int minSpeed;
 
-    private static float[] accelerometer;
+    private static float[] currentAccelerometer;
+    private static float[] totalAccelerometerX;
+    private static float[] totalAccelerometerY;
+    private static float[] totalAccelerometerZ;
 
-    private static float speed;
-    private static float[] location;
+    private static Location currentLocation;
+    private static Location lastLocation;
+    private static float[] currentCoordinates;
 
-    private static float segementDistance;
+    private static float currentDistance;
+    private static float lineDistance;
+    private static float lineBearing;
+    private static float lineSpeed;
 
 
     public static void setSurfaceDoctorPreferences(boolean inputUnits, int inputSegmentDistance,
                                              int inputMaxSpeed, int inputMinSpeed) {
-        inputUnits = units;
-        inputSegmentDistance = maxDistance;
-        inputMaxSpeed = maxSpeed;
-        inputMinSpeed = minSpeed;
+        units = inputUnits;
+        maxDistance = inputSegmentDistance;
+        maxSpeed = inputMaxSpeed;
+        minSpeed = inputMaxSpeed;
     }
 
 
     public static void setSurfaceDoctorAccelerometer(float[] inputAccelerometer) {
-        inputAccelerometer = accelerometer;
+
+        currentAccelerometer = inputAccelerometer;
     }
 
 
-    public static void setSurfaceDoctorLocation(Location location) {}
+    public static void setSurfaceDoctorLocation(Location inputLocation) {
+        currentLocation = lastLocation;
+        currentLocation = inputLocation;
+    }
 
 
-    public static void setLocationParameters(float[] inputLocation, float inputSpeed) {
-        inputLocation = location;
-        inputSpeed = speed;
+    public static void setLocationParameters() {
+
+        // get the distance between this measurement and the last measurement, so we can add it to the total distance.
+        lineDistance = currentLocation.distanceTo(lastLocation);
+        lineBearing = currentLocation.getBearing();
+        lineSpeed = currentLocation.getSpeed();
+    }
+
+    
+    public static void updateSegmentDistance() {
+        currentDistance += lineDistance;
+    }
+
+
+    // TODO: Use in settings callback to set segement options.
+    public static void setSurfaceDoctorSettings() {
+
     }
 
 
@@ -44,7 +69,7 @@ public class SegmentHandler {
 
         boolean isWithinSpeed = false;
 
-        if (minSpeed >= speed && speed <= maxSpeed) {
+        if (minSpeed >= currentSpeed && currentSpeed <= maxSpeed) {
             isWithinSpeed = true;
         }
 
@@ -61,12 +86,24 @@ public class SegmentHandler {
 
         boolean isSegmentEnd = false;
 
-        if (segementDistance >= maxDistance) {
+        if ( currentDistance >= maxDistance ) {
             isSegmentEnd = true;
         }
 
         return isSegmentEnd;
     }
+
+
+    public static boolean isPartialSegment() {
+
+        boolean isPartialSegment = false;
+
+        if ( currentDistance > 0 ) {
+            isPartialSegment = true;
+        }
+         return isPartialSegment;
+    }
+
 
     public static void sendSegmentDetails() {
 
