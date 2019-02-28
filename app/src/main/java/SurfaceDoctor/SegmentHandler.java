@@ -73,14 +73,7 @@ public class SegmentHandler {
 
 
     public static boolean isWithinSpeed() {
-
-        boolean isWithinSpeed = false;
-
-        if (minSpeed >= lineSpeed && lineSpeed <= maxSpeed) {
-            isWithinSpeed = true;
-        }
-
-        return isWithinSpeed;
+        return minSpeed >= lineSpeed && lineSpeed <= maxSpeed;
     }
 
 
@@ -90,39 +83,29 @@ public class SegmentHandler {
 
 
     public static boolean isSegmentEnd() {
-
-        boolean isSegmentEnd = false;
-
-        if ( currentDistance >= maxDistance ) {
-            isSegmentEnd = true;
-        }
-
-        return isSegmentEnd;
+        return currentDistance >= maxDistance;
     }
 
 
     public static boolean isPartialSegment() {
+        return currentDistance > 0;
+    }
 
-        boolean isPartialSegment = false;
-
-        if ( currentDistance > 0 ) {
-            isPartialSegment = true;
-        }
-         return isPartialSegment;
+    public static boolean hasGPS() {
+        return true;
     }
 
 
-    public static void sendSegmentDetails() {
+    public static void finalizeSegment() {
 
     }
+
+    public static void resetSegment() {
+
+    }
+
 
     public static void executeSurfaceDoctorLogic() {
-
-        if (isWithinSpeed()) {
-            if (isSegmentLogging()) {
-
-            }
-        }
 
     }
 }
