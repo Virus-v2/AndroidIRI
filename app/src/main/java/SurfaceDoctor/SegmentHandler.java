@@ -7,8 +7,8 @@ public class SegmentHandler {
 
     private static boolean units = true;
     private static int maxDistance = 1000;
-    private static int maxSpeed = 20;
-    private static int minSpeed = 80;
+    private static int maxSpeed = 200;
+    private static int minSpeed = 10;
 
     private static float lineAccelerometerX;
     private static float lineAccelerometerY;
@@ -27,6 +27,10 @@ public class SegmentHandler {
     private static double lineBearing = 0.0;
     private static double lineSpeed = 0.0;
 
+    private static boolean hasLocationPairs = false;
+
+    //TODO: I think things are delayed now, we don't want to do anything until we know we're within speed. Right now, we're doing things then check if the speed is OK. 
+
 
     public static void setSurfaceDoctorPreferences(boolean inputUnits, int inputSegmentDistance,
                                              int inputMaxSpeed, int inputMinSpeed) {
@@ -39,23 +43,32 @@ public class SegmentHandler {
 
     public static void setSurfaceDoctorAccelerometer(float[] inputAccelerometer) {
 
-        lineAccelerometerX = inputAccelerometer[0];
-        lineAccelerometerY = inputAccelerometer[1];
-        lineAccelerometerZ = inputAccelerometer[2];
+        // Once we know we've established a location, let's start summing our accelerometer data.
+        if (hasLocationPairs) {
+            lineAccelerometerX = inputAccelerometer[0];
+            lineAccelerometerY = inputAccelerometer[1];
+            lineAccelerometerZ = inputAccelerometer[2];
 
-        Log.i("SEG", "Got accell");
-
+            totalAccelerometerX += lineAccelerometerX;
+            totalAccelerometerY += lineAccelerometerY;
+            totalAccelerometerZ += lineAccelerometerZ;
+        }
     }
 
 
     public static void setSurfaceDoctorLocation(Location inputLocation) {
 
-        // If we get a new location and a location already exists, set the new to old.
+        // If we have a pair of location objects, let's run through our logic.
         if (currentLocation != null) {
 
+            // Let's first tell our accelerometer sensors to start summing data.
+            hasLocationPairs = true;
+
+            // Now let's swap the current point to the old point, and update the newest location.
             lastLocation = currentLocation;
             currentLocation = inputLocation;
 
+            // Let's get all our location based data.
             lineBearing = inputLocation.getBearing();
             lineDistance = lastLocation.distanceTo(inputLocation);
             lineSpeed = inputLocation.getSpeed();
@@ -65,10 +78,12 @@ public class SegmentHandler {
             // We're logging, let's process the data.
             executeSurfaceDoctor();
 
-            Log.i("SEG", "Got location, speed is: " + lineSpeed + " distance is: " + lineDistance);
+            Log.i("SEG", "Speed is: " + lineSpeed + " line distance is: " + lineDistance +
+                    " total distance is: " + currentDistance);
 
         } else {
-            // This is our first point, let's do nothing this round.
+            // This is our first point, our logic depends on a comparison of two location objects, so let's do nothing
+            // until we get that second location.
             currentLocation = inputLocation;
         }
     }
@@ -94,17 +109,13 @@ public class SegmentHandler {
 
 
     public static boolean isWithinSpeed() {
-        return minSpeed >= lineSpeed && lineSpeed <= maxSpeed;
+//        Log.i("SEG", "MIN: " + minSpeed + " SPEED " + lineSpeed + " MAX " + maxSpeed);
+        return minSpeed <= lineSpeed && lineSpeed <= maxSpeed;
     }
 
 
     public static boolean isSegmentEnd() {
         return currentDistance >= maxDistance;
-    }
-
-
-    public static boolean isPartialSegment() {
-        return currentDistance > 0;
     }
 
     // TODO: We don't need this anymore, but may need a way to evaluate how long it's been since our last gps point.
@@ -113,32 +124,35 @@ public class SegmentHandler {
     }
 
 
-    public static void resetLineParameters() {
+    public static void resetSegment() {
 
-        lineAccelerometerX = 0;
-        lineAccelerometerY = 0;
-        lineAccelerometerZ = 0;
+        currentDistance = 0;
+        totalAccelerometerX = 0;
+        totalAccelerometerY = 0;
+        totalAccelerometerZ = 0;
 
     }
 
 
     public static void finalizeSegment() {
 
+        // Do something here
+
+        // TODO: Need a way to ensure segment was logged before resetting.
+        resetSegment();
+
     }
 
-    public static void resetSegment() {
-
-    }
 
 
     public static void executeSurfaceDoctor() {
 
-        // We're at the beginning of a segment.
-        if ( isWithinSpeed() && !isPartialSegment() ) {
-            Log.i("SEG", "Stating segment");
-        }
+        Log.i("SEG", "isWithinSpee " + isWithinSpeed() +
+                " isSegmentEnd " + isSegmentEnd());
+
+
         // We're within speed and haven't reached the end of a segment, let's log the line.
-        else if ( isWithinSpeed() && !isSegmentEnd() ) {
+        if ( isWithinSpeed() && !isSegmentEnd() ) {
 
             currentDistance += lineDistance;
             totalAccelerometerZ += lineAccelerometerZ;
@@ -149,17 +163,22 @@ public class SegmentHandler {
                     totalAccelerometerZ + " distance: " + lineDistance);
 
             appendSegmentDistance();
-            resetLineParameters();
 
         }
         // We're withing speed and reached the end of a segment, let's finalize the segment.
         else if ( isWithinSpeed() && isSegmentEnd() ) {
+
+            finalizeSegment();
+
             Log.i("SEG", "Final distance is " + currentDistance);
 
         }
-        // We've exceeded our speed threshold, we need to throw out this segment, so let's reset everything.
-        else if ( !isWithinSpeed() && isPartialSegment()) {
-            Log.i("SEG", "Speed threshold exceeded.");
+        // We've exceeded our speed threshold, we need to reset everything.
+        else if ( !isWithinSpeed()) {
+
+            resetSegment();
+
+
         }
         else {
             Log.i("SEG", "A condition was met that we didn't think about. ");
