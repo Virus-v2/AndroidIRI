@@ -426,6 +426,7 @@ public class MainActivity extends AppCompatActivity
         switch (sensorType) {
             case Sensor.TYPE_ACCELEROMETER:
 
+                // TODO: Data should be removed from this method ASAP.
                 AccelerometerData = sensorEvent.values.clone();
 
                 // If we're logging, pass the accelerometer data to the segment handler.

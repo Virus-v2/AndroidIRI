@@ -29,7 +29,7 @@ public class SegmentHandler {
 
     private static boolean hasLocationPairs = false;
 
-    //TODO: I think things are delayed now, we don't want to do anything until we know we're within speed. Right now, we're doing things then check if the speed is OK. 
+    //TODO: I think things are delayed now, we don't want to do anything until we know we're within speed. Right now, we're doing things then check if the speed is OK.
 
 
     public static void setSurfaceDoctorPreferences(boolean inputUnits, int inputSegmentDistance,
@@ -44,7 +44,7 @@ public class SegmentHandler {
     public static void setSurfaceDoctorAccelerometer(float[] inputAccelerometer) {
 
         // Once we know we've established a location, let's start summing our accelerometer data.
-        if (hasLocationPairs) {
+        if ( hasLocationPairs ) {
             lineAccelerometerX = inputAccelerometer[0];
             lineAccelerometerY = inputAccelerometer[1];
             lineAccelerometerZ = inputAccelerometer[2];
@@ -52,6 +52,14 @@ public class SegmentHandler {
             totalAccelerometerX += lineAccelerometerX;
             totalAccelerometerY += lineAccelerometerY;
             totalAccelerometerZ += lineAccelerometerZ;
+
+            // TODO: Need to move sensor event to here.
+            // TODO: Need to get the timestamp
+            // TODO: Need to get time between readings.
+            // TODO: Using time between readings, calculate distance using double integral (A * t = V, V * t = D)
+
+        } else {
+            //TODO: We could reset here, but it may be redundant (Not sure if that's ok or not).
         }
     }
 
@@ -64,7 +72,7 @@ public class SegmentHandler {
             // Let's first tell our accelerometer sensors to start summing data.
             hasLocationPairs = true;
 
-            // Now let's swap the current point to the old point, and update the newest location.
+            // Now let's make the current point the old point, and update the current point with the new point.
             lastLocation = currentLocation;
             currentLocation = inputLocation;
 
@@ -94,14 +102,6 @@ public class SegmentHandler {
     }
 
 
-    public static void appendSegmentAccelerometer() {
-        //TODO: Best way to add a value to an array.
-//         totalAccelerometerX += currentAccelerometer[0];
-//         totalAccelerometerY += currentAccelerometer[1];
-//         totalAccelerometerZ += currentAccelerometer[2];
-    }
-
-
     // TODO: Use in settings callback to set segement options.
     public static void setSurfaceDoctorSettings() {
 
@@ -118,28 +118,39 @@ public class SegmentHandler {
         return currentDistance >= maxDistance;
     }
 
-    // TODO: We don't need this anymore, but may need a way to evaluate how long it's been since our last gps point.
-    public static boolean hasGPS() {
-        return true;
-    }
 
-
-    public static void resetSegment() {
+    public static void resetSegment(boolean hardReset) {
 
         currentDistance = 0;
         totalAccelerometerX = 0;
         totalAccelerometerY = 0;
         totalAccelerometerZ = 0;
 
+        //
+        if ( hardReset ) {
+            hasLocationPairs = false;
+            currentLocation = null;
+            lastLocation = null;
+        }
+
     }
 
 
     public static void finalizeSegment() {
 
-        // Do something here
+        // TODO: Get the total distance traveled
+        // TODO: Get the total accelerometer data.
+        // TODO: Get the array of coordinate pairs.
+
+        // TODO: Reset the total distance traveled.
+        // TODO: Reset the total accelerometer data.
+        // TODO: Reset the array of coordinate pairs.
+
+        // TODO: Save file as EsriJSON.
 
         // TODO: Need a way to ensure segment was logged before resetting.
-        resetSegment();
+        // We will not rest the location pairs to allow for seemeless transition to the next segment. 
+        resetSegment(false);
 
     }
 
@@ -155,14 +166,13 @@ public class SegmentHandler {
         if ( isWithinSpeed() && !isSegmentEnd() ) {
 
             currentDistance += lineDistance;
-            totalAccelerometerZ += lineAccelerometerZ;
 
+            //TODO: Log the coordinates to an array to generate the polyline.
 
-            Log.i("SEG", "LINE: x: " +
-                    currentLong + " y: " + currentLat + " accelz: " +
-                    totalAccelerometerZ + " distance: " + lineDistance);
+//            Log.i("SEG", "LINE: x: " +
+//                    currentLong + " y: " + currentLat + " accelz: " +
+//                    totalAccelerometerZ + " distance: " + lineDistance);
 
-            appendSegmentDistance();
 
         }
         // We're withing speed and reached the end of a segment, let's finalize the segment.
@@ -176,8 +186,8 @@ public class SegmentHandler {
         // We've exceeded our speed threshold, we need to reset everything.
         else if ( !isWithinSpeed()) {
 
-            resetSegment();
-
+            // The hard rest will clear out our location pairs, as well.
+            resetSegment(true );
 
         }
         else {
