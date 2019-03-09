@@ -1,5 +1,6 @@
 package SurfaceDoctor;
 
+import android.hardware.SensorEvent;
 import android.location.Location;
 import android.util.Log;
 
@@ -41,7 +42,10 @@ public class SegmentHandler {
     }
 
 
-    public static void setSurfaceDoctorAccelerometer(float[] inputAccelerometer) {
+    public void setSurfaceDoctorAccelerometer(SensorEvent sensorEvent) {
+
+        float[] inputAccelerometer = sensorEvent.values;
+        long inputTimestamp = sensorEvent.timestamp;
 
         // Once we know we've established a location, let's start summing our accelerometer data.
         if ( hasLocationPairs ) {
@@ -64,7 +68,7 @@ public class SegmentHandler {
     }
 
 
-    public static void setSurfaceDoctorLocation(Location inputLocation) {
+    public void setSurfaceDoctorLocation(Location inputLocation) {
 
         // If we have a pair of location objects, let's run through our logic.
         if (currentLocation != null) {
