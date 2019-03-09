@@ -4,6 +4,9 @@ import android.hardware.SensorEvent;
 import android.location.Location;
 import android.util.Log;
 
+import java.util.Hashtable;
+import java.util.TreeMap;
+
 public class SegmentHandler {
 
     private static boolean units = true;
@@ -57,6 +60,7 @@ public class SegmentHandler {
             totalAccelerometerY += lineAccelerometerY;
             totalAccelerometerZ += lineAccelerometerZ;
 
+
             // TODO: Need to move sensor event to here.
             // TODO: Need to get the timestamp
             // TODO: Need to get time between readings.
@@ -90,8 +94,9 @@ public class SegmentHandler {
             // We're logging, let's process the data.
             executeSurfaceDoctor();
 
-            Log.i("SEG", "Speed is: " + lineSpeed + " line distance is: " + lineDistance +
-                    " total distance is: " + currentDistance);
+//            Log.i("SEG", "Speed is: " + lineSpeed + " line distance is: " + lineDistance +
+//                    " total distance is: " + currentDistance);
+            Log.i("HASH", "Distance: " + currentDistance);
 
         } else {
             // This is our first point, our logic depends on a comparison of two location objects, so let's do nothing
@@ -160,10 +165,10 @@ public class SegmentHandler {
 
 
 
-    public static void executeSurfaceDoctor() {
+    private void executeSurfaceDoctor() {
 
-        Log.i("SEG", "isWithinSpee " + isWithinSpeed() +
-                " isSegmentEnd " + isSegmentEnd());
+//        Log.i("SEG", "isWithinSpee " + isWithinSpeed() +
+//                " isSegmentEnd " + isSegmentEnd());
 
 
         // We're within speed and haven't reached the end of a segment, let's log the line.
@@ -184,7 +189,7 @@ public class SegmentHandler {
 
             finalizeSegment();
 
-            Log.i("SEG", "Final distance is " + currentDistance);
+//            Log.i("SEG", "Final distance is " + currentDistance);
 
         }
         // We've exceeded our speed threshold, we need to reset everything.
