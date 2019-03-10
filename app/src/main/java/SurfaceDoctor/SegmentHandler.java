@@ -73,15 +73,7 @@ public class SegmentHandler {
                     accelerometerStartTime,
                     accelerometerStopTime));
 
-
-            // TODO: Need to move sensor event to here.
-            // TODO: Need to get the timestamp
-            // TODO: Need to get time between readings.
-            // TODO: Using time between readings, calculate distance using double integral (A * t = V, V * t = D)
-
-        } else {
-            //TODO: We could reset here, but it may be redundant (Not sure if that's ok or not).
-        }
+        } 
     }
 
 
