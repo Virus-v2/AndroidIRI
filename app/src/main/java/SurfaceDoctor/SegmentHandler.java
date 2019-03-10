@@ -143,16 +143,18 @@ public class SegmentHandler {
 
     public static void resetSegment(boolean hardReset) {
 
+        // Reset the segment distance to zero.
         currentDistance = 0;
-        totalAccelerometerX = 0;
-        totalAccelerometerY = 0;
-        totalAccelerometerZ = 0;
+
+        // Clear all accelerometer measurements from the ArrayList.
+        surfaceDoctorPoints.clear();
 
         //
         if ( hardReset ) {
             hasLocationPairs = false;
             currentLocation = null;
             lastLocation = null;
+            accelerometerStopTime = 0;
         }
 
     }
@@ -175,7 +177,6 @@ public class SegmentHandler {
         resetSegment(false);
 
     }
-
 
 
     private void executeSurfaceDoctor() {
