@@ -1,5 +1,6 @@
 package SurfaceDoctor;
 
+import SurfaceDoctor.SurfaceDoctorEvents.SurfaceDoctorEvent;
 import android.hardware.SensorEvent;
 import android.location.Location;
 import android.util.Log;
@@ -41,6 +42,14 @@ public class SegmentHandler {
     //TODO: I think things are delayed now, we don't want to do anything until we know we're within speed. Right now, we're doing things then check if the speed is OK.
 
 
+    private SurfaceDoctorEvent listener;
+
+    public void setSomeEventListener (SurfaceDoctorEvent listener) {
+        this.listener = listener;
+    }
+
+
+
     public static void setSurfaceDoctorPreferences(boolean inputUnits, int inputSegmentDistance,
                                              int inputMaxSpeed, int inputMinSpeed) {
         units = inputUnits;
@@ -52,6 +61,7 @@ public class SegmentHandler {
 
     public void setSurfaceDoctorAccelerometer(SensorEvent sensorEvent) {
 
+        if (listener != null) listener.onSomeEvent ();
 
         accelerometerStopTime = accelerometerStartTime;
         accelerometerStartTime = sensorEvent.timestamp;
@@ -73,7 +83,7 @@ public class SegmentHandler {
                     accelerometerStartTime,
                     accelerometerStopTime));
 
-        } 
+        }
     }
 
 
@@ -101,7 +111,7 @@ public class SegmentHandler {
 
 //            Log.i("SEG", "Speed is: " + lineSpeed + " line distance is: " + lineDistance +
 //                    " total distance is: " + currentDistance);
-            Log.i("HASH", "Distance: " + currentDistance);
+            Log.i("OBJECT", "Distance: " + currentDistance);
 
         } else {
             // This is our first point, our logic depends on a comparison of two location objects, so let's do nothing
@@ -165,7 +175,10 @@ public class SegmentHandler {
         // TODO: Save file as EsriJSON.
 
         // TODO: Need a way to ensure segment was logged before resetting.
-        // We will not rest the location pairs to allow for seemeless transition to the next segment. 
+        // We will not rest the location pairs to allow for seemeless transition to the next segment.
+
+        Log.i("OBJECT", "List:" + surfaceDoctorPoints.size());
+
         resetSegment(false);
 
     }

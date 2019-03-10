@@ -8,6 +8,7 @@ package com.northbridgeanalytics.mysensors;
 // https://stackoverflow.com/questions/11578636/acceleration-from-devices-coordinate-system-into-absolute-coordinate-system
 
 import SurfaceDoctor.SegmentHandler;
+import SurfaceDoctor.SurfaceDoctorEvents.SurfaceDoctorEvent;
 import android.content.SharedPreferences;
 import android.support.v4.app.FragmentManager;
 import android.view.Menu;
@@ -39,7 +40,7 @@ import static android.preference.PreferenceManager.getDefaultSharedPreferences;
 
 
 public class MainActivity extends AppCompatActivity
-        implements SensorEventListener, LocationListener {
+        implements SensorEventListener, LocationListener, SurfaceDoctorEvent {
 
     // Default tag for Log
     private static final String TAG ="MyMessage";
@@ -103,6 +104,12 @@ public class MainActivity extends AppCompatActivity
             }
         }
     };
+
+    @Override
+    public void onSomeEvent() {
+        Log.i("DOCTOR", "Doctor Event Fired");
+
+    }
 
 
     //******************************************************************************************************************
@@ -174,6 +181,7 @@ public class MainActivity extends AppCompatActivity
 
             // We're ready to start logging, let's create a new SegmentHandler object.
             segmentHandler = new SegmentHandler();
+            segmentHandler.setSomeEventListener(this);
 
         }
     }

@@ -1,5 +1,7 @@
 package SurfaceDoctor;
 
+
+
 public class SurfaceDoctorPoint {
     public static float x;
     public static float y;
@@ -30,7 +32,7 @@ public class SurfaceDoctorPoint {
     public float getIRIofY() {
         return y * getTimeDiff() * getTimeDiff();
     }
-    
+
 
     public float getIRIofZ() {
         return z * getTimeDiff() * getTimeDiff();
