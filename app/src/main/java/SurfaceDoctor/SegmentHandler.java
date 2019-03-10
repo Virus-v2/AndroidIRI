@@ -46,7 +46,7 @@ public class SegmentHandler {
         units = inputUnits;
         maxDistance = inputSegmentDistance;
         maxSpeed = inputMaxSpeed;
-        minSpeed = inputMaxSpeed;
+        minSpeed = inputMinSpeed;
     }
 
 
