@@ -4,7 +4,9 @@ import android.hardware.SensorEvent;
 import android.location.Location;
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.TreeMap;
 
 public class SegmentHandler {
@@ -20,6 +22,9 @@ public class SegmentHandler {
     private static float totalAccelerometerX;
     private static float totalAccelerometerY;
     private static float totalAccelerometerZ;
+    private static long accelerometerStartTime = 0;
+    private static long accelerometerStopTime = 0;
+    private static List<SurfaceDoctorPoint> surfaceDoctorPoints = new ArrayList<>();
 
     private static Location currentLocation;
     private static Location lastLocation;
@@ -47,18 +52,26 @@ public class SegmentHandler {
 
     public void setSurfaceDoctorAccelerometer(SensorEvent sensorEvent) {
 
-        float[] inputAccelerometer = sensorEvent.values;
-        long inputTimestamp = sensorEvent.timestamp;
+
+        accelerometerStopTime = accelerometerStartTime;
+        accelerometerStartTime = sensorEvent.timestamp;
 
         // Once we know we've established a location, let's start summing our accelerometer data.
-        if ( hasLocationPairs ) {
-            lineAccelerometerX = inputAccelerometer[0];
-            lineAccelerometerY = inputAccelerometer[1];
-            lineAccelerometerZ = inputAccelerometer[2];
+        if ( hasLocationPairs && accelerometerStopTime > 0 ) {
 
-            totalAccelerometerX += lineAccelerometerX;
-            totalAccelerometerY += lineAccelerometerY;
-            totalAccelerometerZ += lineAccelerometerZ;
+            // The sensorEvent.values contains an array of acceleromter values:
+            // 0: X
+            // 1: Y
+            // 2: Z
+            float[] inputAccelerometer = sensorEvent.values;
+
+            // For each measurement of the accelerometer, create a SurfaceDoctorPoint object.
+            surfaceDoctorPoints.add( new SurfaceDoctorPoint(
+                    inputAccelerometer[0],
+                    inputAccelerometer[1],
+                    inputAccelerometer[2],
+                    accelerometerStartTime,
+                    accelerometerStopTime));
 
 
             // TODO: Need to move sensor event to here.
