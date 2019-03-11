@@ -175,7 +175,7 @@ public class SegmentHandler {
     }
 
 
-    public static void finalizeSegment() {
+    private void finalizeSegment() {
 
         // TODO: Get the total distance traveled
         // TODO: Get the total accelerometer data.
@@ -191,6 +191,15 @@ public class SegmentHandler {
         // We will not rest the location pairs to allow for seemeless transition to the next segment.
 
         Log.i("OBJECT", "List:" + surfaceDoctorPoints.size());
+
+        // Let's pass the segment data to the SurfaceDoctorEvent so it can be used in the main activity.
+        if (listener != null) {
+            SurfaceDoctorEvent e = new SurfaceDoctorEvent();
+            e.type = "TYPE_SEGMENT_IRI";
+            // TODO: Assign output to SurfaceDoctorEvent class.
+
+            listener.onSurfaceDoctorEvent(e);
+        }
 
         resetSegment(false);
 
