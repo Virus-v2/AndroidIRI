@@ -1,14 +1,11 @@
 package SurfaceDoctor;
 
-import SurfaceDoctor.SurfaceDoctorEvents.SurfaceDoctorEvent;
 import android.hardware.SensorEvent;
 import android.location.Location;
 import android.util.Log;
 
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.List;
-import java.util.TreeMap;
 
 public class SegmentHandler {
 
@@ -41,13 +38,12 @@ public class SegmentHandler {
 
     //TODO: I think things are delayed now, we don't want to do anything until we know we're within speed. Right now, we're doing things then check if the speed is OK.
 
+    private SurfaceDoctorInterface listener;
 
-    private SurfaceDoctorEvent listener;
 
-    public void setSomeEventListener (SurfaceDoctorEvent listener) {
+    public void setSomeEventListener (SurfaceDoctorInterface listener) {
         this.listener = listener;
     }
-
 
 
     public static void setSurfaceDoctorPreferences(boolean inputUnits, int inputSegmentDistance,
@@ -61,7 +57,14 @@ public class SegmentHandler {
 
     public void setSurfaceDoctorAccelerometer(SensorEvent sensorEvent) {
 
-        if (listener != null) listener.onSomeEvent ();
+        // Send the accelerometer values to the SurfaceDoctorEvent.
+        if (listener != null) {
+            SurfaceDoctorEvent e = new SurfaceDoctorEvent();
+            e.type = "TYPE_ACCELEROMETER_PHONE";
+            e.accelerometerPhone = sensorEvent.values;
+
+            listener.onSurfaceDoctorEvent(e);
+        }
 
         accelerometerStopTime = accelerometerStartTime;
         accelerometerStartTime = sensorEvent.timestamp;
@@ -105,6 +108,16 @@ public class SegmentHandler {
             lineSpeed = inputLocation.getSpeed();
             currentLong = inputLocation.getLongitude();
             currentLat = inputLocation.getLatitude();
+
+            // Pass the values to the SurfaceDoctorEven so they can be used in the main activity.
+            if (listener != null) {
+                SurfaceDoctorEvent e = new SurfaceDoctorEvent();
+                e.type = "TYPE_LOCATION";
+                e.speed = lineSpeed;
+                e.heading = lineBearing;
+
+                listener.onSurfaceDoctorEvent(e);
+            }
 
             // We're logging, let's process the data.
             executeSurfaceDoctor();
