@@ -1,7 +1,8 @@
 package SurfaceDoctor;
 
-
-
+/** Represents
+ *
+ */
 public class SurfaceDoctorPoint {
     public static float x;
     public static float y;
