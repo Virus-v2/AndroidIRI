@@ -105,7 +105,6 @@ public class SegmentHandler {
                     inputAccelerometer[2],
                     accelerometerStartTime,
                     accelerometerStopTime));
-
         }
     }
 
@@ -174,7 +173,8 @@ public class SegmentHandler {
             // TODO: Do we need to append the line distance and coordinates one last time. I think we do.
             finalizeSegment();
         }
-        // We've exceeded our speed threshold, we need to do a soft reset.
+        // We've exceeded our speed threshold, we need to do a hard reset.
+        // TODO: Would if we lose coordinate pairs or accelerometer data. 
         else if ( !isWithinSpeed()) {
             // The hard rest will clear out our location pairs, as well.
             resetSegment(true );
