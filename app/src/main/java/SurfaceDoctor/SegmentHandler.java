@@ -2,7 +2,10 @@ package SurfaceDoctor;
 
 import android.hardware.SensorEvent;
 import android.location.Location;
+import android.location.LocationManager;
 import android.util.Log;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -10,38 +13,24 @@ import java.util.List;
 
 public class SegmentHandler {
 
+    // Default user input parameters.
     private static boolean units = true;
     private static int maxDistance = 1000;
-    private static int maxSpeed = 200;
-    private static int minSpeed = 10;
+    private static int maxSpeed = 80;
+    private static int minSpeed = 20;
 
-    private static float lineAccelerometerX;
-    private static float lineAccelerometerY;
-    private static float lineAccelerometerZ;
-    private static float totalAccelerometerX;
-    private static float totalAccelerometerY;
-    private static float totalAccelerometerZ;
     private static long accelerometerStartTime = 0;
     private static long accelerometerStopTime = 0;
-    private static List<SurfaceDoctorPoint> surfaceDoctorPoints = new ArrayList<>();
+    private static ArrayList<SurfaceDoctorPoint> surfaceDoctorPoints = new ArrayList<>();
 
+    private static boolean hasLocationPairs = false;
     private static Location currentLocation;
-    private static Location lastLocation;
-    private static double currentLat;
-    private static double currentLong;
     private static ArrayList<double[]> segmentCoordinates = new ArrayList<>();
 
     private static double totalAccumulatedDistance = 0.0;
-    private static double lineDistance = 0;
-    private static double lineBearing = 0.0;
-    private static double lineSpeed = 0.0;
-
-    private static boolean hasLocationPairs = false;
-
-    private SurfaceDoctorInterface listener;
-
 
     // Required to create an Event.
+    private SurfaceDoctorInterface listener;
     public void setSomeEventListener (SurfaceDoctorInterface listener) {
         this.listener = listener;
     }
@@ -71,20 +60,12 @@ public class SegmentHandler {
      * @param sensorEvent
      */
     public void setSurfaceDoctorAccelerometer(SensorEvent sensorEvent) {
+        // TODO: Need to implement high-pass filter.
+        // TODO: Do we need just the upwards acceleration?
 
-        // This creates an event with the sensor values, that will fire in the MainActivity. It was used for learning
-        // purposes and currently does nothing.
-//        if (listener != null) {
-//            SurfaceDoctorEvent e = new SurfaceDoctorEvent();
-//            e.type = "TYPE_ACCELEROMETER_PHONE";
-//            e.accelerometerPhone = sensorEvent.values;
-//
-//            listener.onSurfaceDoctorEvent(e);
-//        }
-
-        // When need time between accelerometer events to calculate the IRI.
-        accelerometerStopTime = accelerometerStartTime;
-        accelerometerStartTime = sensorEvent.timestamp;
+        // We need time between accelerometer events to calculate the IRI.
+        accelerometerStartTime = accelerometerStopTime;
+        accelerometerStopTime = sensorEvent.timestamp;
 
         // Check if we have location pairs and start & stop times. If so, we start collecting SurfaceDoctorPoint objects.
         // hasLocationPairs is set to true by the setSurfaceDoctorLocation method when to location event's have been
@@ -121,16 +102,16 @@ public class SegmentHandler {
             // Let's first tell our accelerometer sensors to start summing data.
             hasLocationPairs = true;
 
-            // Now let's make the current point the old point, and update the current point with the new point.
-            lastLocation = currentLocation;
+            // Now let's make the current point the old point, and update the current point with the new point. We'll
+            // use these location pairs to extract data later.
+            Location lastLocation = currentLocation;
             currentLocation = inputLocation;
 
-            // Let's assign all of our Location data to variables.
-            lineBearing = inputLocation.getBearing();
-            lineDistance = lastLocation.distanceTo(inputLocation);
-            lineSpeed = inputLocation.getSpeed();
-            currentLong = inputLocation.getLongitude();
-            currentLat = inputLocation.getLatitude();
+            // We're logging, let's process the data.
+            executeSurfaceDoctor( currentLocation, lastLocation );
+
+            // TODO: We'll need to create an event that lets MainActivity know if we're within speed, logging, etc. This could also be handled on MainActivity side.
+            double lineBearing = inputLocation.getBearing();
 
             // This creates an event with the sensor values, that will fire in the MainActivity. It was used for learning
             // purposes and currently does nothing.
@@ -143,9 +124,6 @@ public class SegmentHandler {
 //                listener.onSurfaceDoctorEvent(e);
 //            }
 
-            // We're logging, let's process the data.
-            executeSurfaceDoctor();
-
         } else {
             // This is our first point, our logic depends on a comparison of two location objects, so let's do nothing
             // until we get that second location.
@@ -156,26 +134,44 @@ public class SegmentHandler {
 
     /**
      *  This is the main logic handler of the SegmentHandler.
+     *
+     *  This is fired at every GPS location callback from Android.
      */
-    private void executeSurfaceDoctor() {
+    private void executeSurfaceDoctor(Location locationStart, Location locationEnd) {
+
+        // Let's extract the required data from our Location object.
+        double lineDistance = locationStart.distanceTo(locationEnd);
+        double lineSpeed = locationEnd.getSpeed();
+
+        double[] coordinates = new double[]{locationStart.getLongitude(), locationStart.getLatitude()};
+        double[] coordinatesLast = new double[]{locationEnd.getLongitude(), locationEnd.getLatitude()};
 
         // We're within speed and haven't reached the end of a segment, let's add the distance between the coordinate
         // pairs to the total distance of the segment.
-        if ( isWithinSpeed() && !isSegmentEnd() ) {
+        if ( isWithinSpeed( lineSpeed ) && !isSegmentEnd() ) {
             // Append the distance between the coordinate points to the total distance.
             totalAccumulatedDistance += lineDistance;
             // Append the new coordinates to the ArrayList so we can create a polyline later.
-            double[] coordinates = new double[]{currentLat, currentLong};
             segmentCoordinates.add(coordinates);
+
+            Log.i("IRI", "Distance: " + totalAccumulatedDistance);
         }
         // We're withing speed and reached the end of a segment, let's finalize the segment.
-        else if ( isWithinSpeed() && isSegmentEnd() ) {
-            // TODO: Do we need to append the line distance and coordinates one last time. I think we do.
-            finalizeSegment();
+        else if ( isWithinSpeed( lineSpeed ) && isSegmentEnd() ) {
+            // Append the distance between the coordinate points to the total distance.
+            totalAccumulatedDistance += lineDistance;
+            // Append the new coordinates to the ArrayList so we can create a polyline later.
+            segmentCoordinates.add(coordinates);
+            // The segement is done, add the last coordinate.
+            segmentCoordinates.add(coordinatesLast);
+
+            finalizeSegment(totalAccumulatedDistance, segmentCoordinates, surfaceDoctorPoints);
+
+            resetSegment(false);
         }
         // We've exceeded our speed threshold, we need to do a hard reset.
         // TODO: Would if we lose coordinate pairs or accelerometer data. 
-        else if ( !isWithinSpeed()) {
+        else if ( !isWithinSpeed( lineSpeed )) {
             // The hard rest will clear out our location pairs, as well.
             resetSegment(true );
         }
@@ -190,37 +186,59 @@ public class SegmentHandler {
      *
      *  Executes when the segment distance threshold has been met.      *
      */
-    private void finalizeSegment() {
+    private void finalizeSegment(double distance, ArrayList<double[]> polyline, ArrayList<SurfaceDoctorPoint> measurements) {
+        double totalIRIofX = 0.0;
+        double totalIRIofY = 0.0;
+        double totalIRIofZ = 0.0;
 
-        // TODO: Get the total distance traveled
-        Log.i("FINAL DISTANCE", "Final distance is " + totalAccumulatedDistance);
-        Log.i("FINAL COORDINATES", "Coordinates " + segmentCoordinates);
-        // TODO: Get the total accelerometer data.
-        // TODO: Get the array of coordinate pairs.
+        // Get the total IRI of each direction.
+        for (SurfaceDoctorPoint measurement : measurements) {
+            totalIRIofX += measurement.getIRIofX();
+            totalIRIofY += measurement.getIRIofY();
+            totalIRIofZ += measurement.getIRIofZ();
+        }
 
-        // TODO: Reset the total distance traveled.
-        // TODO: Reset the total accelerometer data.
-        // TODO: Reset the array of coordinate pairs.
+        Log.i("IRI", "X " + totalIRIofX + " Y " + totalIRIofY + " Z " + totalIRIofZ);
+
+        try {
+            JSONObject jsonObj = new JSONObject();
+            jsonObj.put("type", "Feature");
+
+            JSONObject geometryJSON = new JSONObject();
+            geometryJSON.put("type", "LineString");
+            geometryJSON.put("coordinates", polyline);
+            jsonObj.put("geometry", geometryJSON);
+
+            JSONObject propertiesJSON = new JSONObject();
+            propertiesJSON.put("DISTANCE", distance);
+            propertiesJSON.put("IRI_X", totalIRIofX);
+            propertiesJSON.put("IRI_Y", totalIRIofY);
+            propertiesJSON.put("IRI_Z", totalIRIofZ);
+            jsonObj.put("properties", propertiesJSON);
+        } catch (JSONException e) {
+            Log.e("JSON", "Unexpected JSON exception", e);
+        }
+
 
         // TODO: Save file as EsriJSON.
-
-        // TODO: Need a way to ensure segment was logged before resetting.
-        // We will not rest the location pairs to allow for seemeless transition to the next segment.
 
         // Let's pass the segment data to the SurfaceDoctorEvent so it can be used in the main activity.
         if (listener != null) {
             SurfaceDoctorEvent e = new SurfaceDoctorEvent();
             e.type = "TYPE_SEGMENT_IRI";
+            e.x = totalIRIofX;
+            e.y = totalIRIofY;
+            e.z = totalIRIofZ;
+            e.distance = distance;
             // TODO: Assign output to SurfaceDoctorEvent class.
             listener.onSurfaceDoctorEvent(e);
         }
-        resetSegment(false);
     }
 
 
-    private static boolean isWithinSpeed() {
+    private static boolean isWithinSpeed( double inputSpeed ) {
 //        Log.i("SEG", "MIN: " + minSpeed + " SPEED " + lineSpeed + " MAX " + maxSpeed);
-        return minSpeed <= lineSpeed && lineSpeed <= maxSpeed;
+        return minSpeed <= inputSpeed && inputSpeed <= maxSpeed;
     }
 
 
@@ -251,7 +269,6 @@ public class SegmentHandler {
         if ( hardReset ) {
             hasLocationPairs = false;
             currentLocation = null;
-            lastLocation = null;
             accelerometerStopTime = 0;
         }
     }

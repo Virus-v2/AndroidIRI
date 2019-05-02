@@ -1,14 +1,11 @@
 package SurfaceDoctor;
 
-/** Represents
- *
- */
 public class SurfaceDoctorPoint {
-    public static float x;
-    public static float y;
-    public static float z;
-    public static long tStart;
-    public static long tStop;
+    private static float x;
+    private static float y;
+    private static float z;
+    private static long tStart;
+    private static long tStop;
 
 
     public SurfaceDoctorPoint(float accelerometerX, float accelerometerY, float accelerometerZ, long startTime, long stopTime) {
@@ -19,23 +16,19 @@ public class SurfaceDoctorPoint {
         tStop = stopTime;
     }
 
+    public double getIRIofX() {
+        double timeDiff = (tStop - tStart) / 1000000000.0;
+        return x * timeDiff * timeDiff;
+    }
 
-    public long getTimeDiff() {
-        return tStop - tStart;
+    public double getIRIofY() {
+        double timeDiff = (tStop - tStart) / 1000000000.0;
+        return y * timeDiff * timeDiff;
     }
 
 
-    public float getIRIofX() {
-        return x * getTimeDiff() * getTimeDiff();
-    }
-
-
-    public float getIRIofY() {
-        return y * getTimeDiff() * getTimeDiff();
-    }
-
-
-    public float getIRIofZ() {
-        return z * getTimeDiff() * getTimeDiff();
+    public double getIRIofZ() {
+        double timeDiff = (tStop - tStart) / 1000000000.0;
+        return z * timeDiff * timeDiff;
     }
 }

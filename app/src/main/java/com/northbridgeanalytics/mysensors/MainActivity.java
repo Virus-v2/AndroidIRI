@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity
         implements SensorEventListener, LocationListener, SurfaceDoctorInterface {
 
     // Default tag for Log
-    private static final String TAG ="MyMessage";
+    private static final String TAG = "MyMessage";
 
     // Callback code for GPS permissions.
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
@@ -106,108 +106,6 @@ public class MainActivity extends AppCompatActivity
         }
     };
 
-    /**
-     *  Event from SegmentHandler.
-     *
-     *  I believe we will use this to pass back the IRI results so they can be displayed on the screen or map.
-     * @param surfaceDoctorEvent
-     */
-    @Override
-    public void onSurfaceDoctorEvent(SurfaceDoctorEvent surfaceDoctorEvent) {
-        String e = surfaceDoctorEvent.getType();
-
-        Log.i("DOCTOR", "Doctor Event Fired: " + e);
-
-    }
-
-
-    //******************************************************************************************************************
-    //                                            BEGIN APP METHODS
-    //******************************************************************************************************************
-
-    // Stop logging when the user turns off GPS.
-    private void toggleRecordingClickedOff() {
-        // Turns off updates from LocationListener.
-        locationManager.removeUpdates(this);
-        isToggleRecordingButtonClicked = false;
-
-        // The user no longer wants to record IRI, so let's delete it.
-        segmentHandler = null;
-
-    }
-
-
-    // The user has turned on GPS logging.
-    private void toggleRecordingClickedOn() {
-
-        // Check if we have permission to use the GPS and request it if we don't.
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-          != PackageManager.PERMISSION_GRANTED) {
-
-            // Uh-oh we don't have permissions, better ask.
-            ActivityCompat.requestPermissions(MainActivity.this,
-              new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-              MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-                // MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION is an integer constant that we will use to lookup the
-                // result of this request in the onRequestPermissionsResult() callback.
-
-        } else {
-            // We already have permission, so let's enable the GPS.
-            enableGPS();
-        }
-    }
-
-
-    // After we get permission, enable the GPS.
-    private void enableGPS() {
-        // Lets see if the user has GPS enabled.
-        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-
-            // We have permission, but the GPS isn't enabled, ask the user if they would like to go to their location
-            // settings.
-            AlertDialogGPS gpsSettings = new AlertDialogGPS();
-            gpsSettings.show(fm, "Alert Dialog");
-
-            // The GPS was not enabled from the button press, so let's change it to false.
-            isToggleRecordingButtonClicked = false;
-
-        } else {
-
-            // We have permission and GPS is enabled, let's start logging.
-            // Register the listener with the Location Manager to receive location updates from the GPS only. The second
-            // parameter controls minimum time interval between notifications and the third is the minimum change in
-            // distance between notifications - setting both to zero requests location notifications as frequently as
-            // possible.
-            locationManager.requestLocationUpdates(
-              LocationManager.GPS_PROVIDER, 0, 0, this);
-
-            // Successfully started logging the GPS, set the button as clicked.
-            isToggleRecordingButtonClicked = true;
-
-            // We're ready to start logging, let's create a new SegmentHandler object.
-            segmentHandler = new SegmentHandler();
-            segmentHandler.setSomeEventListener(this);
-        }
-    }
-
-    private void getLoggingSettings() {
-
-        SharedPreferences settings = getDefaultSharedPreferences(this);
-
-        // Get settings settings about file type.
-        boolean isEsriJASON = settings.getBoolean("preference_filename_json", false);
-        String loggingFilePrefix = settings.getString("preference_filename_prefix", "androidIRI");
-
-        // Get settings about logging variables.
-        boolean loggingUnits = settings.getBoolean("preference_logging_units", true);
-        int maxLoggingDistance = Integer.parseInt(
-                settings.getString("preference_logging_distance", "1000"));
-        int maxLoggingSpeed = Integer.parseInt(
-                settings.getString("preference_logging_max_Speed", "80"));
-        int minLoggingSpeed = Integer.parseInt(
-                settings.getString("preference_logging_min_speed", "20"));
-
-    }
 
     //******************************************************************************************************************
     //                                            BEGIN ACTIVITY LIFECYCLE
@@ -274,15 +172,15 @@ public class MainActivity extends AppCompatActivity
         // TODO: Need a dialog saying sensors aren't available.
         if (SensorAccelerometer != null) {
             SensorManager.registerListener(this, SensorAccelerometer,
-              SensorManager.SENSOR_DELAY_NORMAL);
+                    SensorManager.SENSOR_DELAY_NORMAL);
         }
         if (SensorMagnetometer != null) {
             SensorManager.registerListener(this, SensorMagnetometer,
-              SensorManager.SENSOR_DELAY_NORMAL);
+                    SensorManager.SENSOR_DELAY_NORMAL);
         }
         if (SensorManager != null) {
-            SensorManager.registerListener( this, SensorGravity,
-              SensorManager.SENSOR_DELAY_NORMAL);
+            SensorManager.registerListener(this, SensorGravity,
+                    SensorManager.SENSOR_DELAY_NORMAL);
         }
 
         Log.i("Activity", "OnStart has fired");
@@ -321,60 +219,51 @@ public class MainActivity extends AppCompatActivity
         Log.i("Activity", "onDestroy has fired");
     }
 
+
     //******************************************************************************************************************
-    //                                                BEGIN APP BAR
+    //                                            PERMISSIONS AND SETTINGS
     //******************************************************************************************************************
 
-    /**
-     * Callback for inflating the app bar items.
-     *
-     * @param menu
-     * @return
-     */
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.my_toolbar_menu, menu);
-        return true;
+    // Stop logging when the user turns off GPS.
+    private void toggleRecordingClickedOff() {
+        // Turns off updates from LocationListener.
+        locationManager.removeUpdates(this);
+        isToggleRecordingButtonClicked = false;
+
+        // The user no longer wants to record IRI, so let's delete it.
+        segmentHandler = null;
+
     }
 
-    /**
-     * App bar items callback.
-     *
-     * This method is called when the user selects one of the app bar items, and passes a MenuItem object to indicate
-     * which item was clicked. The ID returned from MenutItem.getItemId() matches the id you declared for the app bar
-     * item in res/menu/<-menu.xml->
-     *
-     * @param item MenuItem callback object to indicate which item was clicked. Use MenuItem.getItemId() to get value.
-     * @return
-     */
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_settings:
-                // User chose the Settings item, show the app settings UI.
 
-                getSupportFragmentManager()
-                  .beginTransaction()
-                  .replace(R.id.preferenceFragment, new SettingsFragment())
-                  .addToBackStack(null)
-                  .commit();
+    // The user has turned on GPS logging.
+    private void toggleRecordingClickedOn() {
 
-                return true;
+        // Check if we have permission to use the GPS and request it if we don't.
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
 
-            default:
-                // If we got here, the user's action was not recognized.
-                // Invoke the superclass to handle it.
-                return super.onOptionsItemSelected(item);
+            // Uh-oh we don't have permissions, better ask.
+            ActivityCompat.requestPermissions(MainActivity.this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+            // MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION is an integer constant that we will use to lookup the
+            // result of this request in the onRequestPermissionsResult() callback.
+
+        } else {
+            // We already have permission, so let's enable the GPS.
+            enableGPS();
         }
     }
 
 
-
-    //******************************************************************************************************************
-    //                                            BEGIN PERMISSIONS
-    //******************************************************************************************************************
-
-
+    /**
+     * Android callback for response to permissions requests.
+     *
+     * @param requestCode
+     * @param permissions
+     * @param grantResults
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
@@ -403,12 +292,112 @@ public class MainActivity extends AppCompatActivity
     }
 
 
+    // After we get permission, enable the GPS.
+    private void enableGPS() {
+        // Lets see if the user has GPS enabled.
+        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+
+            // We have permission, but the GPS isn't enabled, ask the user if they would like to go to their location
+            // settings.
+            AlertDialogGPS gpsSettings = new AlertDialogGPS();
+            gpsSettings.show(fm, "Alert Dialog");
+
+            // The GPS was not enabled from the button press, so let's make sure it's still false.
+            isToggleRecordingButtonClicked = false;
+
+        } else {
+
+            // We have permission and GPS is enabled, let's start logging.
+            // Register the listener with the Location Manager to receive location updates from the GPS only. The second
+            // parameter controls minimum time interval between notifications and the third is the minimum change in
+            // distance between notifications - setting both to zero requests location notifications as frequently as
+            // possible.
+            locationManager.requestLocationUpdates(
+                    LocationManager.GPS_PROVIDER, 0, 0, this);
+
+            // Successfully started logging the GPS, set the button as clicked.
+            isToggleRecordingButtonClicked = true;
+
+            // We're ready to start logging, let's create a new SegmentHandler object.
+            segmentHandler = new SegmentHandler();
+            segmentHandler.setSomeEventListener(this);
+        }
+    }
+
+
+    // TODO: What is this?
+    private void getLoggingSettings() {
+
+        SharedPreferences settings = getDefaultSharedPreferences(this);
+
+        // Get settings settings about file type.
+        boolean isEsriJASON = settings.getBoolean("preference_filename_json", false);
+        String loggingFilePrefix = settings.getString("preference_filename_prefix", "androidIRI");
+
+        // Get settings about logging variables.
+        boolean loggingUnits = settings.getBoolean("preference_logging_units", true);
+        int maxLoggingDistance = Integer.parseInt(
+                settings.getString("preference_logging_distance", "1000"));
+        int maxLoggingSpeed = Integer.parseInt(
+                settings.getString("preference_logging_max_Speed", "80"));
+        int minLoggingSpeed = Integer.parseInt(
+                settings.getString("preference_logging_min_speed", "20"));
+
+    }
+
+
+    //******************************************************************************************************************
+    //                                                BEGIN APP BAR
+    //******************************************************************************************************************
+
+    /**
+     * Callback for inflating the app bar items.
+     *
+     * @param menu
+     * @return
+     */
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.my_toolbar_menu, menu);
+        return true;
+    }
+
+    /**
+     * App bar items callback.
+     * <p>
+     * This method is called when the user selects one of the app bar items, and passes a MenuItem object to indicate
+     * which item was clicked. The ID returned from MenutItem.getItemId() matches the id you declared for the app bar
+     * item in res/menu/<-menu.xml->
+     *
+     * @param item MenuItem callback object to indicate which item was clicked. Use MenuItem.getItemId() to get value.
+     * @return
+     */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                // User chose the Settings item, show the app settings UI.
+
+                getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.preferenceFragment, new SettingsFragment())
+                        .addToBackStack(null)
+                        .commit();
+
+                return true;
+
+            default:
+                // If we got here, the user's action was not recognized.
+                // Invoke the superclass to handle it.
+                return super.onOptionsItemSelected(item);
+        }
+    }
 
     //******************************************************************************************************************
     //                                            BEGIN SENSOR CALLBACKS
     //******************************************************************************************************************
 
-    //*********************************************   SENSORS   ********************************************************
+    //*********************************************   Accelerometer  ***************************************************
 
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
@@ -439,22 +428,20 @@ public class MainActivity extends AppCompatActivity
         }
 
 
-
-
         // Get the phone's accelerometer values in earth's coordinate system.
         //
         // X = East / West
         // Y = North / South
         // Z = Up / Down
         float[] earthAcc = VectorAlgebra.earthAccelerometer(
-          AccelerometerData, MagnetometerData,
-          GravityData, SensorManager);
+                AccelerometerData, MagnetometerData,
+                GravityData, SensorManager);
 
         // TODO: We also need acceleromter data in user coordinate systmer where y is straight ahead. 
 
         // Get the phone's orientation - given in radians.
         float[] phoneOrientationValuesRadians = VectorAlgebra.phoneOrientation(
-          AccelerometerData, MagnetometerData, SensorManager);
+                AccelerometerData, MagnetometerData, SensorManager);
 
         // Phone's orientation is given in radians, lets convert that to degrees.
         double[] phoneOrientationValuesDegrees = VectorAlgebra.radiansToDegrees(phoneOrientationValuesRadians);
@@ -489,7 +476,7 @@ public class MainActivity extends AppCompatActivity
 
     /**
      * Android Callback for Accelerometer Accuracy Change.
-     *
+     * <p>
      * Must be implemented to satisfy the SensorEventListener interface;
      * unused in this app.
      */
@@ -545,4 +532,32 @@ public class MainActivity extends AppCompatActivity
         enableGPS();
 
     }
+
+
+    //******************************************************************************************************************
+    //                                            Surface Doctor
+    //******************************************************************************************************************
+
+
+    /**
+     * Event from SegmentHandler.
+     *
+     * @param surfaceDoctorEvent
+     */
+    @Override
+    public void onSurfaceDoctorEvent(SurfaceDoctorEvent surfaceDoctorEvent) {
+        String surfaceDoctorEventType = surfaceDoctorEvent.getType();
+
+        switch (surfaceDoctorEventType) {
+            case "TYPE_SEGMENT_IRI":
+                TextView x = findViewById(R.id.last_IRI_x);
+                TextView y = findViewById(R.id.last_IRI_y);
+                TextView z = findViewById(R.id.last_IRI_z);
+
+                x.setText(Double.toString(surfaceDoctorEvent.x));
+                y.setText(Double.toString(surfaceDoctorEvent.y));
+                z.setText(Double.toString(surfaceDoctorEvent.z));
+        }
+    }
+
 }
