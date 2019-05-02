@@ -11,6 +11,7 @@ import SurfaceDoctor.SegmentHandler;
 import SurfaceDoctor.SurfaceDoctorEvent;
 import SurfaceDoctor.SurfaceDoctorInterface;
 import android.content.SharedPreferences;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -380,7 +381,7 @@ public class MainActivity extends AppCompatActivity
 
                 getSupportFragmentManager()
                         .beginTransaction()
-                        .replace(R.id.preferenceFragment, new SettingsFragment())
+                        .replace(R.id.preferenceFragment, new Fragment())
                         .addToBackStack(null)
                         .commit();
 

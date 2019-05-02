@@ -15,9 +15,9 @@ public class SegmentHandler {
 
     // Default user input parameters.
     private static boolean units = true;
-    private static int maxDistance = 1000;
-    private static int maxSpeed = 80;
-    private static int minSpeed = 20;
+    private static int maxDistance = 200;
+    private static int maxSpeed = 20000;
+    private static int minSpeed = 5;
 
     private static long accelerometerStartTime = 0;
     private static long accelerometerStopTime = 0;
