@@ -31,7 +31,7 @@ public class SegmentHandler {
     private static double currentLong;
     private static ArrayList<double[]> segmentCoordinates = new ArrayList<>();
 
-    private static double currentDistance = 0.0;
+    private static double totalAccumulatedDistance = 0.0;
     private static double lineDistance = 0;
     private static double lineBearing = 0.0;
     private static double lineSpeed = 0.0;
@@ -147,10 +147,6 @@ public class SegmentHandler {
             // We're logging, let's process the data.
             executeSurfaceDoctor();
 
-//            Log.i("SEG", "Speed is: " + lineSpeed + " line distance is: " + lineDistance +
-//                    " total distance is: " + currentDistance);
-            Log.i("OBJECT", "Distance: " + currentDistance);
-
         } else {
             // This is our first point, our logic depends on a comparison of two location objects, so let's do nothing
             // until we get that second location.
@@ -167,15 +163,18 @@ public class SegmentHandler {
         // We're within speed and haven't reached the end of a segment, let's add the distance between the coordinate
         // pairs to the total distance of the segment.
         if ( isWithinSpeed() && !isSegmentEnd() ) {
-            currentDistance += lineDistance;
-            //TODO: Log the coordinates to an array to generate the polyline.
-            double[] coordiantes = {currentLat, currentLong};
+            // Append the distance between the coordinate points to the total distance.
+            totalAccumulatedDistance += lineDistance;
+            // Append the new coordinates to the ArrayList so we can create a polyline later.
+            double[] coordinates = new double[]{currentLat, currentLong};
+            segmentCoordinates.add(coordinates);
         }
         // We're withing speed and reached the end of a segment, let's finalize the segment.
         else if ( isWithinSpeed() && isSegmentEnd() ) {
+            // TODO: Do we need to append the line distance and coordinates one last time. I think we do.
             finalizeSegment();
         }
-        // We've exceeded our speed threshold, we need to reset everything.
+        // We've exceeded our speed threshold, we need to do a soft reset.
         else if ( !isWithinSpeed()) {
             // The hard rest will clear out our location pairs, as well.
             resetSegment(true );
@@ -194,6 +193,8 @@ public class SegmentHandler {
     private void finalizeSegment() {
 
         // TODO: Get the total distance traveled
+        Log.i("FINAL DISTANCE", "Final distance is " + totalAccumulatedDistance);
+        Log.i("FINAL COORDINATES", "Coordinates " + segmentCoordinates);
         // TODO: Get the total accelerometer data.
         // TODO: Get the array of coordinate pairs.
 
@@ -211,12 +212,9 @@ public class SegmentHandler {
             SurfaceDoctorEvent e = new SurfaceDoctorEvent();
             e.type = "TYPE_SEGMENT_IRI";
             // TODO: Assign output to SurfaceDoctorEvent class.
-
             listener.onSurfaceDoctorEvent(e);
         }
-
         resetSegment(false);
-
     }
 
 
@@ -227,7 +225,7 @@ public class SegmentHandler {
 
 
     private static boolean isSegmentEnd() {
-        return currentDistance >= maxDistance;
+        return totalAccumulatedDistance >= maxDistance;
     }
 
 
@@ -241,10 +239,13 @@ public class SegmentHandler {
     private static void resetSegment(boolean hardReset) {
 
         // Reset the segment distance to zero.
-        currentDistance = 0;
+        totalAccumulatedDistance = 0;
 
         // Clear all accelerometer measurements from the ArrayList.
         surfaceDoctorPoints.clear();
+
+        // Clear the list of coordinates that make the polyline. 
+        segmentCoordinates.clear();
 
         //
         if ( hardReset ) {
