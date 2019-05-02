@@ -44,9 +44,6 @@ import static android.preference.PreferenceManager.getDefaultSharedPreferences;
 public class MainActivity extends AppCompatActivity
         implements SensorEventListener, LocationListener, SurfaceDoctorInterface {
 
-    // Default tag for Log
-    private static final String TAG = "MyMessage";
-
     // Callback code for GPS permissions.
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private FragmentManager fm = getSupportFragmentManager();
@@ -352,7 +349,9 @@ public class MainActivity extends AppCompatActivity
     //******************************************************************************************************************
 
     /**
-     * Callback for inflating the app bar items.
+     * Adds entries to the action bar.
+     *
+     * Adds all the entries, such as settings, to the action bar dropdown.
      *
      * @param menu
      * @return
@@ -365,7 +364,7 @@ public class MainActivity extends AppCompatActivity
 
     /**
      * App bar items callback.
-     * <p>
+     *
      * This method is called when the user selects one of the app bar items, and passes a MenuItem object to indicate
      * which item was clicked. The ID returned from MenutItem.getItemId() matches the id you declared for the app bar
      * item in res/menu/<-menu.xml->
