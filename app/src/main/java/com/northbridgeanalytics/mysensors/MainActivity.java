@@ -323,27 +323,6 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-    // TODO: What is this?
-    private void getLoggingSettings() {
-
-        SharedPreferences settings = getDefaultSharedPreferences(this);
-
-        // Get settings settings about file type.
-        boolean isEsriJASON = settings.getBoolean("preference_filename_json", false);
-        String loggingFilePrefix = settings.getString("preference_filename_prefix", "androidIRI");
-
-        // Get settings about logging variables.
-        boolean loggingUnits = settings.getBoolean("preference_logging_units", true);
-        int maxLoggingDistance = Integer.parseInt(
-                settings.getString("preference_logging_distance", "1000"));
-        int maxLoggingSpeed = Integer.parseInt(
-                settings.getString("preference_logging_max_Speed", "80"));
-        int minLoggingSpeed = Integer.parseInt(
-                settings.getString("preference_logging_min_speed", "20"));
-
-    }
-
-
     //******************************************************************************************************************
     //                                                BEGIN APP BAR
     //******************************************************************************************************************
@@ -380,7 +359,7 @@ public class MainActivity extends AppCompatActivity
 
                 getSupportFragmentManager()
                         .beginTransaction()
-                        .replace(R.id.preferenceFragment, new Fragment())
+                        .replace(R.id.preferenceFragment, new SettingsFragment())
                         .addToBackStack(null)
                         .commit();
 
@@ -391,6 +370,28 @@ public class MainActivity extends AppCompatActivity
                 // Invoke the superclass to handle it.
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+
+
+    // TODO: What is this? This is how you get the preferences that were in the settings fragment somehow.
+    private void getLoggingSettings() {
+
+        SharedPreferences settings = getDefaultSharedPreferences(this);
+
+        // Get settings settings about file type.
+        boolean isEsriJASON = settings.getBoolean("preference_filename_json", false);
+        String loggingFilePrefix = settings.getString("preference_filename_prefix", "androidIRI");
+
+        // Get settings about logging variables.
+        boolean loggingUnits = settings.getBoolean("preference_logging_units", true);
+        int maxLoggingDistance = Integer.parseInt(
+                settings.getString("preference_logging_distance", "1000"));
+        int maxLoggingSpeed = Integer.parseInt(
+                settings.getString("preference_logging_max_Speed", "80"));
+        int minLoggingSpeed = Integer.parseInt(
+                settings.getString("preference_logging_min_speed", "20"));
+
     }
 
     //******************************************************************************************************************
