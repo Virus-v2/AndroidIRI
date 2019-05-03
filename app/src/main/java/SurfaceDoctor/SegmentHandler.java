@@ -2,14 +2,13 @@ package SurfaceDoctor;
 
 import android.hardware.SensorEvent;
 import android.location.Location;
-import android.location.LocationManager;
 import android.util.Log;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.List;
+
+import static java.lang.Math.abs;
 
 public class SegmentHandler {
 
@@ -70,7 +69,7 @@ public class SegmentHandler {
         // Check if we have location pairs and start & stop times. If so, we start collecting SurfaceDoctorPoint objects.
         // hasLocationPairs is set to true by the setSurfaceDoctorLocation method when to location event's have been
         // recorded.
-        if ( hasLocationPairs && accelerometerStopTime > 0 ) {
+        if ( hasLocationPairs && accelerometerStartTime > 0 ) {
 
             // The sensorEvent.values contains an array of acceleromter values:
             // 0: X
@@ -142,7 +141,6 @@ public class SegmentHandler {
         // Let's extract the required data from our Location object.
         double lineDistance = locationStart.distanceTo(locationEnd);
         double lineSpeed = locationEnd.getSpeed();
-
         double[] coordinates = new double[]{locationStart.getLongitude(), locationStart.getLatitude()};
         double[] coordinatesLast = new double[]{locationEnd.getLongitude(), locationEnd.getLatitude()};
 
@@ -187,19 +185,46 @@ public class SegmentHandler {
      *  Executes when the segment distance threshold has been met.      *
      */
     private void finalizeSegment(double distance, ArrayList<double[]> polyline, ArrayList<SurfaceDoctorPoint> measurements) {
-        double totalIRIofX = 0.0;
-        double totalIRIofY = 0.0;
-        double totalIRIofZ = 0.0;
+        double totalVerticalDisplacementX = 0.0;
+        double totalVerticalDisplacementY = 0.0;
+        double totalVerticalDisplacementZ = 0.0;
 
-        // Get the total IRI of each direction.
-        for (SurfaceDoctorPoint measurement : measurements) {
-            totalIRIofX += measurement.getIRIofX();
-            totalIRIofY += measurement.getIRIofY();
-            totalIRIofZ += measurement.getIRIofZ();
+        // First get the total vertical displacement of the segment.
+        for (int i = 0; i < measurements.size(); i++ ) {
+
+            // Vertical Displacements equals the absolute value of the longitudinal offset minus the previous offset.
+            if ( i - 1 >= 0 ) {
+                totalVerticalDisplacementX += abs(measurements.get(i).getVertDissX() - measurements.get(i-1).getVertDissX());
+                totalVerticalDisplacementY += abs(measurements.get(i).getVertDissY() - measurements.get(i-1).getVertDissY());
+                totalVerticalDisplacementZ += abs(measurements.get(i).getVertDissZ() - measurements.get(i-1).getVertDissZ());
+            }
         }
+
+        // Now, IRI = total vertical displacement / segment distance.
+        double totalIRIofX = totalVerticalDisplacementX / distance;
+        double totalIRIofY = totalVerticalDisplacementY / distance;
+        double totalIRIofZ = totalVerticalDisplacementZ / distance;
 
         Log.i("IRI", "X " + totalIRIofX + " Y " + totalIRIofY + " Z " + totalIRIofZ);
 
+        // Let's pass the segment data to the SurfaceDoctorEvent so it can be used in the main activity.
+        // The SurfaceDoctorEvent will be triggered in the MainActivity.
+        if (listener != null) {
+            SurfaceDoctorEvent e = new SurfaceDoctorEvent();
+            e.type = "TYPE_SEGMENT_IRI";
+            e.x = totalVerticalDisplacementX;
+            e.y = totalIRIofY;
+            e.z = totalIRIofZ;
+            e.distance = distance;
+            // TODO: Assign output to SurfaceDoctorEvent class.
+            listener.onSurfaceDoctorEvent(e);
+        }
+    }
+
+
+    private static void saveResults(double distance, double IRIofX, double IRIofY, double IRIofZ, ArrayList<double[]> polyline ) {
+
+        // Add results to GeoJSON.
         try {
             JSONObject jsonObj = new JSONObject();
             jsonObj.put("type", "Feature");
@@ -211,28 +236,16 @@ public class SegmentHandler {
 
             JSONObject propertiesJSON = new JSONObject();
             propertiesJSON.put("DISTANCE", distance);
-            propertiesJSON.put("IRI_X", totalIRIofX);
-            propertiesJSON.put("IRI_Y", totalIRIofY);
-            propertiesJSON.put("IRI_Z", totalIRIofZ);
+            propertiesJSON.put("IRI_X", IRIofX);
+            propertiesJSON.put("IRI_Y", IRIofY);
+            propertiesJSON.put("IRI_Z", IRIofZ);
             jsonObj.put("properties", propertiesJSON);
         } catch (JSONException e) {
             Log.e("JSON", "Unexpected JSON exception", e);
         }
 
+        // TODO: Save file as geoJSON or EsriJSON.
 
-        // TODO: Save file as EsriJSON.
-
-        // Let's pass the segment data to the SurfaceDoctorEvent so it can be used in the main activity.
-        if (listener != null) {
-            SurfaceDoctorEvent e = new SurfaceDoctorEvent();
-            e.type = "TYPE_SEGMENT_IRI";
-            e.x = totalIRIofX;
-            e.y = totalIRIofY;
-            e.z = totalIRIofZ;
-            e.distance = distance;
-            // TODO: Assign output to SurfaceDoctorEvent class.
-            listener.onSurfaceDoctorEvent(e);
-        }
     }
 
 

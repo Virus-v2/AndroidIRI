@@ -16,18 +16,18 @@ public class SurfaceDoctorPoint {
         tStop = stopTime;
     }
 
-    public double getIRIofX() {
+    public double getVertDissX() {
         double timeDiff = (tStop - tStart) / 1000000000.0;
         return x * timeDiff * timeDiff;
     }
 
-    public double getIRIofY() {
+    public double getVertDissY() {
         double timeDiff = (tStop - tStart) / 1000000000.0;
         return y * timeDiff * timeDiff;
     }
 
 
-    public double getIRIofZ() {
+    public double getVertDissZ() {
         double timeDiff = (tStop - tStart) / 1000000000.0;
         return z * timeDiff * timeDiff;
     }
