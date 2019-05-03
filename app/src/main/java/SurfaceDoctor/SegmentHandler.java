@@ -14,7 +14,7 @@ public class SegmentHandler {
 
     // Default user input parameters.
     private static boolean units = true;
-    private static int maxDistance = 200;
+    private static int maxDistance = 500;
     private static int maxSpeed = 20000;
     private static int minSpeed = 5;
 
@@ -191,12 +191,21 @@ public class SegmentHandler {
 
         // First get the total vertical displacement of the segment.
         for (int i = 0; i < measurements.size(); i++ ) {
+            int previousIndex = i - 1;
 
             // Vertical Displacements equals the absolute value of the longitudinal offset minus the previous offset.
-            if ( i - 1 >= 0 ) {
-                totalVerticalDisplacementX += abs(measurements.get(i).getVertDissX() - measurements.get(i-1).getVertDissX());
-                totalVerticalDisplacementY += abs(measurements.get(i).getVertDissY() - measurements.get(i-1).getVertDissY());
-                totalVerticalDisplacementZ += abs(measurements.get(i).getVertDissZ() - measurements.get(i-1).getVertDissZ());
+            if ( previousIndex >= 0 ) {
+
+                double currentX = measurements.get(i).getVertDissX();
+                double currentY = measurements.get(i).getVertDissY();
+                double currentZ = measurements.get(i).getVertDissZ();
+                double previousX = measurements.get(previousIndex).getVertDissX();
+                double previousY = measurements.get(previousIndex).getVertDissY();
+                double previousZ = measurements.get(previousIndex).getVertDissZ();
+
+                totalVerticalDisplacementX += Math.abs(currentX - previousX);
+                totalVerticalDisplacementY += Math.abs(currentY - previousY);
+                totalVerticalDisplacementZ += Math.abs(currentZ - previousZ);
             }
         }
 
