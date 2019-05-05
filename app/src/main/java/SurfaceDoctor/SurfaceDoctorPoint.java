@@ -1,11 +1,11 @@
 package SurfaceDoctor;
 
 public class SurfaceDoctorPoint {
-    private static float x;
-    private static float y;
-    private static float z;
-    private static long tStart;
-    private static long tStop;
+    private float x;
+    private float y;
+    private float z;
+    private long tStart;
+    private long tStop;
 
 
     public SurfaceDoctorPoint(float accelerometerX, float accelerometerY, float accelerometerZ, long startTime, long stopTime) {

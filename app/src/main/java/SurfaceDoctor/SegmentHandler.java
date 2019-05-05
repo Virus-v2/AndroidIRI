@@ -7,26 +7,28 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import static java.lang.Math.abs;
 
 public class SegmentHandler {
 
     // Default user input parameters.
-    private static boolean units = true;
-    private static int maxDistance = 500;
-    private static int maxSpeed = 20000;
-    private static int minSpeed = 5;
+    private boolean units = true;
+    private int maxDistance = 500;
+    private int maxSpeed = 20000;
+    private int minSpeed = 5;
 
-    private static long accelerometerStartTime = 0;
-    private static long accelerometerStopTime = 0;
-    private static ArrayList<SurfaceDoctorPoint> surfaceDoctorPoints = new ArrayList<>();
+    private long accelerometerStartTime = 0;
+    private long accelerometerStopTime = 0;
+    private List<SurfaceDoctorPoint> surfaceDoctorPoints = new ArrayList<SurfaceDoctorPoint>();
 
-    private static boolean hasLocationPairs = false;
-    private static Location currentLocation;
-    private static ArrayList<double[]> segmentCoordinates = new ArrayList<>();
+    private boolean hasLocationPairs = false;
+    private Location currentLocation;
+    private ArrayList<double[]> segmentCoordinates = new ArrayList<>();
 
-    private static double totalAccumulatedDistance = 0.0;
+    private double totalAccumulatedDistance = 0.0;
 
     // Required to create an Event.
     private SurfaceDoctorInterface listener;
@@ -43,7 +45,7 @@ public class SegmentHandler {
      * @param inputMaxSpeed
      * @param inputMinSpeed
      */
-    public static void setSurfaceDoctorPreferences(boolean inputUnits, int inputSegmentDistance,
+    public void setSurfaceDoctorPreferences(boolean inputUnits, int inputSegmentDistance,
                                              int inputMaxSpeed, int inputMinSpeed) {
         // TODO: This needs implementing.
         units = inputUnits;
@@ -75,16 +77,17 @@ public class SegmentHandler {
             // 0: X
             // 1: Y
             // 2: Z
-            float[] inputAccelerometer = sensorEvent.values;
+            float[] inputAccelerometer = sensorEvent.values.clone();
 
             // For each measurement of the accelerometer, create a SurfaceDoctorPoint object.
             // TODO: Does this need to be a class?
-            surfaceDoctorPoints.add( new SurfaceDoctorPoint(
+            SurfaceDoctorPoint surfaceDoctorPoint = new SurfaceDoctorPoint(
                     inputAccelerometer[0],
                     inputAccelerometer[1],
                     inputAccelerometer[2],
                     accelerometerStartTime,
-                    accelerometerStopTime));
+                    accelerometerStopTime);
+            surfaceDoctorPoints.add(surfaceDoctorPoint);
         }
     }
 
@@ -163,7 +166,11 @@ public class SegmentHandler {
             // The segement is done, add the last coordinate.
             segmentCoordinates.add(coordinatesLast);
 
-            finalizeSegment(totalAccumulatedDistance, segmentCoordinates, surfaceDoctorPoints);
+            double finalDistance = totalAccumulatedDistance;
+            ArrayList<double[]> finalCoordiantes = new ArrayList<>(segmentCoordinates);
+            List<SurfaceDoctorPoint> finalPoints = new ArrayList<>(surfaceDoctorPoints);
+
+            finalizeSegment(finalDistance, finalCoordiantes, finalPoints);
 
             resetSegment(false);
         }
@@ -184,7 +191,7 @@ public class SegmentHandler {
      *
      *  Executes when the segment distance threshold has been met.      *
      */
-    private void finalizeSegment(double distance, ArrayList<double[]> polyline, ArrayList<SurfaceDoctorPoint> measurements) {
+    private void finalizeSegment(double distance, ArrayList<double[]> polyline, List<SurfaceDoctorPoint> measurements) {
         double totalVerticalDisplacementX = 0.0;
         double totalVerticalDisplacementY = 0.0;
         double totalVerticalDisplacementZ = 0.0;
@@ -221,7 +228,7 @@ public class SegmentHandler {
         if (listener != null) {
             SurfaceDoctorEvent e = new SurfaceDoctorEvent();
             e.type = "TYPE_SEGMENT_IRI";
-            e.x = totalVerticalDisplacementX;
+            e.x = totalIRIofX;
             e.y = totalIRIofY;
             e.z = totalIRIofZ;
             e.distance = distance;
@@ -231,7 +238,7 @@ public class SegmentHandler {
     }
 
 
-    private static void saveResults(double distance, double IRIofX, double IRIofY, double IRIofZ, ArrayList<double[]> polyline ) {
+    private void saveResults(double distance, double IRIofX, double IRIofY, double IRIofZ, ArrayList<double[]> polyline ) {
 
         // Add results to GeoJSON.
         try {
@@ -258,13 +265,13 @@ public class SegmentHandler {
     }
 
 
-    private static boolean isWithinSpeed( double inputSpeed ) {
+    private boolean isWithinSpeed( double inputSpeed ) {
 //        Log.i("SEG", "MIN: " + minSpeed + " SPEED " + lineSpeed + " MAX " + maxSpeed);
         return minSpeed <= inputSpeed && inputSpeed <= maxSpeed;
     }
 
 
-    private static boolean isSegmentEnd() {
+    private boolean isSegmentEnd() {
         return totalAccumulatedDistance >= maxDistance;
     }
 
@@ -276,7 +283,7 @@ public class SegmentHandler {
      *
      * @param hardReset boolean
      */
-    private static void resetSegment(boolean hardReset) {
+    private void resetSegment(boolean hardReset) {
 
         // Reset the segment distance to zero.
         totalAccumulatedDistance = 0;
