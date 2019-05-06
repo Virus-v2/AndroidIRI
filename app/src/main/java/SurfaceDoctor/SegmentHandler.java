@@ -7,7 +7,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import static java.lang.Math.abs;
@@ -23,6 +22,10 @@ public class SegmentHandler {
     private long accelerometerStartTime = 0;
     private long accelerometerStopTime = 0;
     private List<SurfaceDoctorPoint> surfaceDoctorPoints = new ArrayList<SurfaceDoctorPoint>();
+
+    private float[] gravity = new float[3];
+
+    private float alpha = 0.8f;
 
     private boolean hasLocationPairs = false;
     private Location currentLocation;
@@ -73,22 +76,42 @@ public class SegmentHandler {
         // recorded.
         if ( hasLocationPairs && accelerometerStartTime > 0 ) {
 
-            // The sensorEvent.values contains an array of acceleromter values:
-            // 0: X
-            // 1: Y
-            // 2: Z
             float[] inputAccelerometer = sensorEvent.values.clone();
 
+            // Low-pass filter for isolating gravity.
+            float[] adjustedGravity = new float[3];
+
+            adjustedGravity[0] = alpha * gravity[0] + (1 - alpha) * inputAccelerometer[0];
+            adjustedGravity[1] = alpha * gravity[1] + (1 - alpha) * inputAccelerometer[1];
+            adjustedGravity[2] = alpha * gravity[2] + (1 - alpha) * inputAccelerometer[2];
+
+            // High-pass filter for removing gravity.
+            float[] linearAcceleration = new float[3];
+
+            linearAcceleration[0] = inputAccelerometer[0] - adjustedGravity[0];
+            linearAcceleration[1] = inputAccelerometer[1] - adjustedGravity[1];
+            linearAcceleration[2] = inputAccelerometer[2] - adjustedGravity[2];
+
             // For each measurement of the accelerometer, create a SurfaceDoctorPoint object.
-            // TODO: Does this need to be a class?
             SurfaceDoctorPoint surfaceDoctorPoint = new SurfaceDoctorPoint(
-                    inputAccelerometer[0],
-                    inputAccelerometer[1],
-                    inputAccelerometer[2],
+                    linearAcceleration[0],
+                    linearAcceleration[1],
+                    linearAcceleration[2],
                     accelerometerStartTime,
                     accelerometerStopTime);
             surfaceDoctorPoints.add(surfaceDoctorPoint);
         }
+    }
+
+
+    /**
+     * Receives Gravity from Android Sensor Callback
+     *
+     * @param sensorEvent
+     */
+    public void setSurfaceDoctorGravity(SensorEvent sensorEvent ) {
+
+        gravity = sensorEvent.values.clone();
     }
 
 
