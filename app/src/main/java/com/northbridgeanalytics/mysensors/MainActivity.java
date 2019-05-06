@@ -470,11 +470,11 @@ public class MainActivity extends AppCompatActivity
 
         // Display the phone's accelerometer data in the view.
         TextSensorPhoneAccX.setText(getResources().getString(
-                R.string.value_format, (AccelerometerData[0] - linear_acceleration[0])));
+                R.string.value_format, linear_acceleration[0]));
         TextSensorPhoneAccY.setText(getResources().getString(
-                R.string.value_format, (AccelerometerData[1] - linear_acceleration[1])));
+                R.string.value_format, linear_acceleration[1]));
         TextSensorPhoneAccZ.setText(getResources().getString(
-                R.string.value_format, (AccelerometerData[2] - linear_acceleration[2])));
+                R.string.value_format, linear_acceleration[2]));
 
         // Display the phone's accelerometer data in earth's coordinate system.
         TextSensorEarthAccX.setText(getResources().getString(
