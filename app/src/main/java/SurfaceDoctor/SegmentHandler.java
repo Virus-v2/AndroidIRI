@@ -1,11 +1,17 @@
 package SurfaceDoctor;
 
+import android.content.Context;
 import android.hardware.SensorEvent;
 import android.location.Location;
+import android.os.Environment;
 import android.util.Log;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,6 +23,8 @@ public class SegmentHandler {
     private int maxDistance = 1000;
     private int maxSpeed = 80;
     private int minSpeed = 20;
+
+    private Context context;
 
     private long accelerometerStartTime = 0;
     private long accelerometerStopTime = 0;
@@ -36,6 +44,15 @@ public class SegmentHandler {
     private SurfaceDoctorInterface listener;
     public void setSomeEventListener (SurfaceDoctorInterface listener) {
         this.listener = listener;
+    }
+
+    /**
+     * Constructors
+     *
+     * @param context
+     */
+    public SegmentHandler(Context context) {
+        this.context = context;
     }
 
 
@@ -265,27 +282,56 @@ public class SegmentHandler {
 
     private void saveResults(double distance, double IRIofX, double IRIofY, double IRIofZ, ArrayList<double[]> polyline ) {
 
-        // Add results to GeoJSON.
-        try {
-            JSONObject jsonObj = new JSONObject();
-            jsonObj.put("type", "Feature");
+        if ( isExternalStorageWritable() ) {
+            // Add results to GeoJSON.
+            try {
+                JSONObject jsonObj = new JSONObject();
+                jsonObj.put("type", "Feature");
 
-            JSONObject geometryJSON = new JSONObject();
-            geometryJSON.put("type", "LineString");
-            geometryJSON.put("coordinates", polyline);
-            jsonObj.put("geometry", geometryJSON);
+                JSONObject geometryJSON = new JSONObject();
+                geometryJSON.put("type", "LineString");
+                geometryJSON.put("coordinates", polyline);
+                jsonObj.put("geometry", geometryJSON);
 
-            JSONObject propertiesJSON = new JSONObject();
-            propertiesJSON.put("DISTANCE", distance);
-            propertiesJSON.put("IRI_X", IRIofX);
-            propertiesJSON.put("IRI_Y", IRIofY);
-            propertiesJSON.put("IRI_Z", IRIofZ);
-            jsonObj.put("properties", propertiesJSON);
-        } catch (JSONException e) {
-            Log.e("JSON", "Unexpected JSON exception", e);
+                JSONObject propertiesJSON = new JSONObject();
+                propertiesJSON.put("DISTANCE", distance);
+                propertiesJSON.put("IRI_X", IRIofX);
+                propertiesJSON.put("IRI_Y", IRIofY);
+                propertiesJSON.put("IRI_Z", IRIofZ);
+                jsonObj.put("properties", propertiesJSON);
+
+                byte[] jsonToBytes = jsonObj.toString().getBytes();
+
+                File file = getPrivateStorageDirectory(context, String.valueOf(accelerometerStartTime) + ".geojson");
+
+                try {
+                    FileOutputStream fos = new FileOutputStream(file);
+
+                    try {
+                        fos.write(jsonToBytes);
+                        fos.close();
+                    } catch (IOException e) {
+                        Log.e("ERROR", "IO Exception");
+                    }
+
+
+                } catch (FileNotFoundException e) {
+                    Log.e("ERROR", "File not found");
+                }
+
+
+            } catch (JSONException e) {
+                Log.e("JSON", "Unexpected JSON exception", e);
+            }
+
+
+
+
+
+            // TODO: Save file as geoJSON or EsriJSON.
+        } else {
+            // TODO: We'll save to inter
         }
-
-        // TODO: Save file as geoJSON or EsriJSON.
 
     }
 
@@ -326,4 +372,20 @@ public class SegmentHandler {
             accelerometerStopTime = 0;
         }
     }
+
+
+    /* Checks if external storage is available for read and write */
+    public boolean isExternalStorageWritable() {
+        String state = Environment.getExternalStorageState();
+        if (Environment.MEDIA_MOUNTED.equals(state)) {
+            return true;
+        }
+        return false;
+    }
+
+    private File getPrivateStorageDirectory(Context context, String fileName) {
+        File file = new File(context.getExternalFilesDir(null), fileName);
+        return file;
+    }
+
 }
