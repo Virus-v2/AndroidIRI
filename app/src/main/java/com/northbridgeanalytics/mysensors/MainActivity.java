@@ -11,7 +11,6 @@ import SurfaceDoctor.SegmentHandler;
 import SurfaceDoctor.SurfaceDoctorEvent;
 import SurfaceDoctor.SurfaceDoctorInterface;
 import android.content.SharedPreferences;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -47,6 +46,9 @@ public class MainActivity extends AppCompatActivity
     // Callback code for GPS permissions.
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private FragmentManager fm = getSupportFragmentManager();
+
+    private float[] adjustedGravity = new float[3];
+    private float[] linear_acceleration = new float[3];
 
     // Very small values for the accelerometer (on all three axes) should be interpreted as 0. This value is the amount
     // of acceptable non-zero drift.
@@ -317,7 +319,7 @@ public class MainActivity extends AppCompatActivity
             isToggleRecordingButtonClicked = true;
 
             // We're ready to start logging, let's create a new SegmentHandler object.
-            segmentHandler = new SegmentHandler();
+            segmentHandler = new SegmentHandler(this);
             segmentHandler.setSomeEventListener(this);
         }
     }
@@ -410,6 +412,19 @@ public class MainActivity extends AppCompatActivity
                 // TODO: Data should be removed from this method ASAP.
                 AccelerometerData = sensorEvent.values.clone();
 
+                float alpha = 0.8f;
+
+                // Low-pass filter for isolating gravity.
+                adjustedGravity[0] = alpha * GravityData[0] + (1 - alpha) *  AccelerometerData[0];
+                adjustedGravity[1] = alpha * GravityData[1] + (1 - alpha) *  AccelerometerData[1];
+                adjustedGravity[2] = alpha * GravityData[2] + (1 - alpha) *  AccelerometerData[2];
+
+                // High-pass filter for removing gravity.
+                linear_acceleration[0] =  AccelerometerData[0] - adjustedGravity[0];
+                linear_acceleration[1] =  AccelerometerData[1] - adjustedGravity[1];
+                linear_acceleration[2] =  AccelerometerData[2] - adjustedGravity[2];
+
+
                 // The segmentHandler object is created in the enableGPS() method when the user presses the start logging
                 // button. If the segmentHandler object exists, it means we have location permissions, the GPS is
                 // enabled, and we need to pass the accelerometer SensorEvent to the SegmentHandler.
@@ -423,6 +438,11 @@ public class MainActivity extends AppCompatActivity
                 break;
             case Sensor.TYPE_GRAVITY:
                 GravityData = sensorEvent.values.clone();
+
+                if (segmentHandler != null ) {
+                    segmentHandler.setSurfaceDoctorGravity(sensorEvent);
+                }
+
                 break;
             default:
                 return;
@@ -435,7 +455,7 @@ public class MainActivity extends AppCompatActivity
         // Y = North / South
         // Z = Up / Down
         float[] earthAcc = VectorAlgebra.earthAccelerometer(
-                AccelerometerData, MagnetometerData,
+                linear_acceleration, MagnetometerData,
                 GravityData, SensorManager);
 
         // TODO: We also need acceleromter data in user coordinate systmer where y is straight ahead. 
@@ -450,11 +470,11 @@ public class MainActivity extends AppCompatActivity
 
         // Display the phone's accelerometer data in the view.
         TextSensorPhoneAccX.setText(getResources().getString(
-                R.string.value_format, AccelerometerData[0]));
+                R.string.value_format, (AccelerometerData[0] - linear_acceleration[0])));
         TextSensorPhoneAccY.setText(getResources().getString(
-                R.string.value_format, AccelerometerData[1]));
+                R.string.value_format, (AccelerometerData[1] - linear_acceleration[1])));
         TextSensorPhoneAccZ.setText(getResources().getString(
-                R.string.value_format, AccelerometerData[2]));
+                R.string.value_format, (AccelerometerData[2] - linear_acceleration[2])));
 
         // Display the phone's accelerometer data in earth's coordinate system.
         TextSensorEarthAccX.setText(getResources().getString(
