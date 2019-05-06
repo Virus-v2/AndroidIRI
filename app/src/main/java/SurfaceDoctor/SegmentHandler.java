@@ -9,15 +9,14 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.lang.Math.abs;
 
 public class SegmentHandler {
 
     // Default user input parameters.
     private boolean units = true;
-    private int maxDistance = 500;
-    private int maxSpeed = 20000;
-    private int minSpeed = 5;
+    private int maxDistance = 1000;
+    private int maxSpeed = 80;
+    private int minSpeed = 20;
 
     private long accelerometerStartTime = 0;
     private long accelerometerStopTime = 0;
@@ -215,34 +214,37 @@ public class SegmentHandler {
      *  Executes when the segment distance threshold has been met.      *
      */
     private void finalizeSegment(double distance, ArrayList<double[]> polyline, List<SurfaceDoctorPoint> measurements) {
-        double totalVerticalDisplacementX = 0.0;
-        double totalVerticalDisplacementY = 0.0;
-        double totalVerticalDisplacementZ = 0.0;
+
+        double[] totalVerticalDisplacement = new double[3];
 
         // First get the total vertical displacement of the segment.
         for (int i = 0; i < measurements.size(); i++ ) {
             int previousIndex = i - 1;
 
-            // Vertical Displacements equals the absolute value of the longitudinal offset minus the previous offset.
+            // Vertical Displacements equals the absolute value of the current longitudinal offset minus the previous
+            // longitudinal offset.
             if ( previousIndex >= 0 ) {
 
-                double currentX = measurements.get(i).getVertDissX();
-                double currentY = measurements.get(i).getVertDissY();
-                double currentZ = measurements.get(i).getVertDissZ();
-                double previousX = measurements.get(previousIndex).getVertDissX();
-                double previousY = measurements.get(previousIndex).getVertDissY();
-                double previousZ = measurements.get(previousIndex).getVertDissZ();
+                double[] currentVerticalDisplacement = new double[3];
+                double[] previousVerticalDisplacement = new double[3];
 
-                totalVerticalDisplacementX += Math.abs(currentX - previousX);
-                totalVerticalDisplacementY += Math.abs(currentY - previousY);
-                totalVerticalDisplacementZ += Math.abs(currentZ - previousZ);
+                currentVerticalDisplacement[0] = measurements.get(i).getVertDissX();
+                currentVerticalDisplacement[1] = measurements.get(i).getVertDissY();
+                currentVerticalDisplacement[2] = measurements.get(i).getVertDissZ();
+                previousVerticalDisplacement[0]  = measurements.get(previousIndex).getVertDissX();
+                previousVerticalDisplacement[1]  = measurements.get(previousIndex).getVertDissY();
+                previousVerticalDisplacement[2] = measurements.get(previousIndex).getVertDissZ();
+
+                totalVerticalDisplacement[0] += Math.abs( currentVerticalDisplacement[0] - previousVerticalDisplacement[0] );
+                totalVerticalDisplacement[1] += Math.abs( currentVerticalDisplacement[1] - previousVerticalDisplacement[1] );
+                totalVerticalDisplacement[2] += Math.abs( currentVerticalDisplacement[2] - previousVerticalDisplacement[2] );
             }
         }
 
         // Now, IRI = total vertical displacement / segment distance.
-        double totalIRIofX = totalVerticalDisplacementX / distance;
-        double totalIRIofY = totalVerticalDisplacementY / distance;
-        double totalIRIofZ = totalVerticalDisplacementZ / distance;
+        double totalIRIofX = totalVerticalDisplacement[0] / distance;
+        double totalIRIofY = totalVerticalDisplacement[1] / distance;
+        double totalIRIofZ = totalVerticalDisplacement[2] / distance;
 
         Log.i("IRI", "X " + totalIRIofX + " Y " + totalIRIofY + " Z " + totalIRIofZ);
 
