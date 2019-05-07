@@ -1,6 +1,5 @@
-package utils;
+package SurfaceDoctor;
 
-import android.hardware.Sensor;
 import android.hardware.SensorManager;
 
 public class VectorAlgebra {
