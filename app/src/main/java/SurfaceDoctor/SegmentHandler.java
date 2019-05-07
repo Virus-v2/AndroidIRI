@@ -5,14 +5,12 @@ import android.hardware.SensorEvent;
 import android.location.Location;
 import android.os.Environment;
 import android.util.Log;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -37,8 +35,8 @@ public class SegmentHandler {
     private float alpha = 0.8f;
 
     private boolean hasLocationPairs = false;
-    private Location currentLocation;
-    private JSONArray segmentCoordinates = new JSONArray();
+    private Location endPoint;
+    private ArrayList<String[]> segmentCoordinates = new ArrayList<>();
 
     private double totalAccumulatedDistance = 0.0;
 
@@ -140,18 +138,18 @@ public class SegmentHandler {
     public void setSurfaceDoctorLocation(Location inputLocation) {
 
         // If we have a pair of location objects, let's run through our logic.
-        if (currentLocation != null) {
+        if (endPoint != null) {
 
             // Let's first tell our accelerometer sensors to start summing data.
             hasLocationPairs = true;
 
             // Now let's make the current point the old point, and update the current point with the new point. We'll
             // use these location pairs to extract data later.
-            Location lastLocation = currentLocation;
-            currentLocation = inputLocation;
+            Location startPoint = endPoint;
+            endPoint = inputLocation;
 
             // We're logging, let's process the data.
-            executeSurfaceDoctor( currentLocation, lastLocation );
+            executeSurfaceDoctor(endPoint, startPoint );
 
             // TODO: We'll need to create an event that lets MainActivity know if we're within speed, logging, etc. This could also be handled on MainActivity side.
             double lineBearing = inputLocation.getBearing();
@@ -170,7 +168,7 @@ public class SegmentHandler {
         } else {
             // This is our first point, our logic depends on a comparison of two location objects, so let's do nothing
             // until we get that second location.
-            currentLocation = inputLocation;
+            endPoint = inputLocation;
         }
     }
 
@@ -185,10 +183,13 @@ public class SegmentHandler {
         // Let's extract the required data from our Location object.
         double lineDistance = locationStart.distanceTo(locationEnd);
         double lineSpeed = locationEnd.getSpeed();
-        double coordinateStart = locationStart.getLongitude();
-        double coordinateEnd = locationStart.getLatitude();
-        double [] coordinatesStart = new double[] {coordinateStart , coordinateEnd};
-        double[] coordinatesLast = new double[]{ locationEnd.getLongitude(), locationEnd.getLatitude() };
+        DecimalFormat coordinatesFormat = new DecimalFormat("#.######");
+        String[] coordinatesStart = new String[]{
+                coordinatesFormat.format(locationStart.getLongitude()),
+                coordinatesFormat.format(locationStart.getLatitude())};
+        String[] coordinatesLast = new String[]{
+                coordinatesFormat.format(locationEnd.getLongitude()),
+                coordinatesFormat.format(locationEnd.getLatitude())};
 
         // We're within speed and haven't reached the end of a segment, let's add the distance between the coordinate
         // pairs to the total distance of the segment.
@@ -196,7 +197,7 @@ public class SegmentHandler {
             // Append the distance between the coordinate points to the total distance.
             totalAccumulatedDistance += lineDistance;
             // Append the new coordinates to the ArrayList so we can create a polyline later.
-            segmentCoordinates.put( Arrays.toString(coordinatesStart ));
+            segmentCoordinates.add(coordinatesStart);
 
             Log.i("IRI", "Distance: " + totalAccumulatedDistance);
         }
@@ -205,16 +206,21 @@ public class SegmentHandler {
             // Append the distance between the coordinate points to the total distance.
             totalAccumulatedDistance += lineDistance;
             // Append the new coordinates to the ArrayList so we can create a polyline later.
-            segmentCoordinates.put( Arrays.asList(coordinatesStart) );
+            segmentCoordinates.add(coordinatesStart);
             // The segement is done, add the last coordinate.
-            segmentCoordinates.put( Arrays.asList(coordinatesLast) );
+            segmentCoordinates.add(coordinatesLast);
 
+            // Make a new reference to the data.
+            // TODO: Note sure if this is necessary.
             double finalDistance = totalAccumulatedDistance;
-//            JSONArray finalCoordiantes = new JSONArray(segmentCoordinates);
+            ArrayList<String[]> finalCoordinantes = new ArrayList<>(segmentCoordinates);
             List<SurfaceDoctorPoint> finalPoints = new ArrayList<>(surfaceDoctorPoints);
 
-            finalizeSegment(finalDistance, segmentCoordinates, finalPoints);
+            // This is the end of a segment, let's send it off to be finalized.
+            finalizeSegment(finalDistance, finalCoordinantes, finalPoints);
 
+            // Let's reset for the next segment.
+            // TODO: Is this safe here?
             resetSegment(false);
         }
         // We've exceeded our speed threshold, we need to do a hard reset.
@@ -234,7 +240,7 @@ public class SegmentHandler {
      *
      *  Executes when the segment distance threshold has been met.      *
      */
-    private void finalizeSegment(double distance, JSONArray polyline, List<SurfaceDoctorPoint> measurements) {
+    private void finalizeSegment(double distance, ArrayList<String[]> polyline, List<SurfaceDoctorPoint> measurements) {
 
         double[] totalVerticalDisplacement = new double[3];
 
@@ -286,58 +292,38 @@ public class SegmentHandler {
     }
 
 
-    private void saveResults(double distance, double IRIofX, double IRIofY, double IRIofZ, JSONArray polyline ) {
+    private void saveResults(double distance, double IRIofX, double IRIofY, double IRIofZ, ArrayList<String[]> polyline ) {
 
         if ( isExternalStorageWritable() ) {
             // Add results to GeoJSON.
+
+            String[][] test = new String[polyline.size()][polyline.size()];
+            test = polyline.toArray(test);
+
+            String output = "{\"type\": \"FeatureCollection\", \"features\": [ { \"type\": \"Feature\", \"geometry\":" +
+                    "{ \"type\": \"LineString\", \"coordinates\":" + Arrays.deepToString(test) + "},\"properties\": { \"DISTANCE\":" +
+                    distance + ", \"IRIofX\":" + IRIofX + ", \"IRIofY\":" + IRIofY + ", \"IRIofZ\":" + IRIofZ + "}}]}";
+
+
+            byte[] outputBytes = output.getBytes();
+
+            File file = getPrivateStorageDirectory(context, String.valueOf(accelerometerStartTime) + ".geojson");
+
             try {
-                JSONObject jsonObj = new JSONObject();
-                jsonObj.put("type", "FeatureCollection");
-
-                JSONArray jsonFeatureArray = new JSONArray();
-                JSONObject jsonFeatureObj = new JSONObject();
-                jsonFeatureObj.put("type", "Feature");
-
-                JSONObject geometryJSON = new JSONObject();
-                geometryJSON.put("type", "LineString");
-//                JSONArray coordinatesJSONArray = new JSONArray();
-//                coordinatesJSONArray.put(polyline);
-                geometryJSON.put("coordinates", polyline);
-                jsonFeatureObj.put("geometry", geometryJSON);
-
-                JSONObject propertiesJSON = new JSONObject();
-                propertiesJSON.put("DISTANCE", distance);
-                propertiesJSON.put("IRI_X", IRIofX);
-                propertiesJSON.put("IRI_Y", IRIofY);
-                propertiesJSON.put("IRI_Z", IRIofZ);
-                jsonFeatureObj.put("properties", propertiesJSON);
-
-                jsonFeatureArray.put(jsonFeatureObj);
-                jsonObj.put("features", jsonFeatureArray);
-
-                byte[] jsonToBytes = jsonObj.toString().getBytes();
-
-                File file = getPrivateStorageDirectory(context, String.valueOf(accelerometerStartTime) + ".geojson");
+                FileOutputStream fos = new FileOutputStream(file);
 
                 try {
-                    FileOutputStream fos = new FileOutputStream(file);
-
-                    try {
-                        fos.write(jsonToBytes);
-                        fos.close();
-                    } catch (IOException e) {
-                        Log.e("ERROR", "IO Exception");
-                    }
-
-
-                } catch (FileNotFoundException e) {
-                    Log.e("ERROR", "File not found");
+                    fos.write(outputBytes);
+                    fos.close();
+                } catch (IOException e) {
+                    Log.e("ERROR", "IO Exception");
                 }
 
 
-            } catch (JSONException e) {
-                Log.e("JSON", "Unexpected JSON exception", e);
+            } catch (FileNotFoundException e) {
+                Log.e("ERROR", "File not found");
             }
+
 
 
 
@@ -378,12 +364,12 @@ public class SegmentHandler {
         surfaceDoctorPoints.clear();
 
         // Clear the list of coordinates that make the polyline. 
-        segmentCoordinates = new JSONArray();
+        segmentCoordinates.clear();
 
         //
         if ( hardReset ) {
             hasLocationPairs = false;
-            currentLocation = null;
+            endPoint = null;
             accelerometerStopTime = 0;
         }
     }
