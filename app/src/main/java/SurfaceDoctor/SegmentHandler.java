@@ -20,9 +20,9 @@ public class SegmentHandler {
 
     // Default user input parameters.
     private boolean units = true;
-    private int maxDistance = 200;
-    private int maxSpeed = 8000;
-    private int minSpeed = 10;
+    private int maxDistance = 1000;
+    private int maxSpeed = 80;
+    private int minSpeed = 20;
 
     private Context context;
 
@@ -38,7 +38,7 @@ public class SegmentHandler {
     private Location endPoint;
     private ArrayList<String[]> segmentCoordinates = new ArrayList<>();
 
-    private double totalAccumulatedDistance = 0.0;
+    private float totalAccumulatedDistance = 0.0f;
 
     // Required to create an Event.
     private SurfaceDoctorInterface listener;
@@ -337,9 +337,10 @@ public class SegmentHandler {
     }
 
 
-    private boolean isWithinSpeed( double inputSpeed ) {
-//        Log.i("SEG", "MIN: " + minSpeed + " SPEED " + lineSpeed + " MAX " + maxSpeed);
-        return minSpeed <= inputSpeed && inputSpeed <= maxSpeed;
+    private boolean isWithinSpeed( float inputSpeed ) {
+        // TODO: Need to handle which units the user selected.
+        float mph = inputSpeed * 2.23694f;
+        return minSpeed <= mph && mph <= maxSpeed;
     }
 
 
