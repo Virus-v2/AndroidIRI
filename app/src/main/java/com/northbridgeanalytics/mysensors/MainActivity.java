@@ -14,6 +14,7 @@ import android.content.SharedPreferences;
 import android.support.v4.app.FragmentManager;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.WindowManager;
 import myAlerts.AlertDialogGPS;
 import SurfaceDoctor.VectorAlgebra;
 import android.Manifest;
@@ -115,6 +116,7 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         // Lock the orientation to portrait (for now)
         // TODO: Support screen rotation?
