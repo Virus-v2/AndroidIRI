@@ -80,10 +80,9 @@ public class SegmentHandler {
      * @param sensorEvent
      */
     public void setSurfaceDoctorAccelerometer(SensorEvent sensorEvent) {
-        // TODO: Need to implement high-pass filter.
-        // TODO: Do we need just the upwards acceleration?
 
         // We need time between accelerometer events to calculate the IRI.
+        // TODO: Verify what time this is.
         accelerometerStartTime = accelerometerStopTime;
         accelerometerStopTime = sensorEvent.timestamp;
 
@@ -149,7 +148,7 @@ public class SegmentHandler {
             endPoint = inputLocation;
 
             // We're logging, let's process the data.
-            executeSurfaceDoctor(endPoint, startPoint );
+            executeSurfaceDoctor(startPoint, endPoint );
 
             // TODO: We'll need to create an event that lets MainActivity know if we're within speed, logging, etc. This could also be handled on MainActivity side.
             double lineBearing = inputLocation.getBearing();
@@ -180,9 +179,10 @@ public class SegmentHandler {
      */
     private void executeSurfaceDoctor(Location locationStart, Location locationEnd) {
 
-        // Let's extract the required data from our Location object.
-        double lineDistance = locationStart.distanceTo(locationEnd);
-        double lineSpeed = locationEnd.getSpeed();
+        // The approximate distance in meters.
+        float lineDistance = locationStart.distanceTo(locationEnd);
+        // The speed in m/s
+        float lineSpeed = locationEnd.getSpeed();
         DecimalFormat coordinatesFormat = new DecimalFormat("#.######");
         String[] coordinatesStart = new String[]{
                 coordinatesFormat.format(locationStart.getLongitude()),
@@ -344,6 +344,7 @@ public class SegmentHandler {
 
 
     private boolean isSegmentEnd() {
+        // TODO: Need to handle user's input units.
         return totalAccumulatedDistance >= maxDistance;
     }
 
