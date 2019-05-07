@@ -20,9 +20,9 @@ public class SegmentHandler {
 
     // Default user input parameters.
     private boolean units = true;
-    private int maxDistance = 1000;
-    private int maxSpeed = 80;
-    private int minSpeed = 20;
+    private int maxDistance = 200;
+    private int maxSpeed = 8000;
+    private int minSpeed = 10;
 
     private Context context;
 
@@ -277,6 +277,8 @@ public class SegmentHandler {
             // TODO: Assign output to SurfaceDoctorEvent class.
             listener.onSurfaceDoctorEvent(e);
         }
+
+        saveResults(distance, totalIRIofX, totalIRIofY, totalIRIofZ, polyline);
     }
 
 
@@ -384,7 +386,7 @@ public class SegmentHandler {
     }
 
     private File getPrivateStorageDirectory(Context context, String fileName) {
-        File file = new File(context.getExternalFilesDir(null), fileName);
+        File file = new File(context.getExternalFilesDir("geoJson"), fileName);
         return file;
     }
 
