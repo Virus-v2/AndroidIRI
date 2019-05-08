@@ -268,10 +268,11 @@ public class SegmentHandler {
             }
         }
 
-        // Now, IRI = total vertical displacement / segment distance.
-        double totalIRIofX = totalVerticalDisplacement[0] / distance;
-        double totalIRIofY = totalVerticalDisplacement[1] / distance;
-        double totalIRIofZ = totalVerticalDisplacement[2] / distance;
+        // Now, IRI(mm/m) = (total vertical displacement * 1000) / segment distance.
+        // TODO: Need to allow the user to output IRI in mm/m or m/km.
+        double totalIRIofX = (totalVerticalDisplacement[0] * 1000) / distance;
+        double totalIRIofY = (totalVerticalDisplacement[1] * 1000) / distance;
+        double totalIRIofZ = (totalVerticalDisplacement[2] * 1000) / distance;
 
         Log.i("IRI", "X " + totalIRIofX + " Y " + totalIRIofY + " Z " + totalIRIofZ);
 
