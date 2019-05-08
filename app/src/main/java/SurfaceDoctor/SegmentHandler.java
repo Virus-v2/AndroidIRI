@@ -125,7 +125,6 @@ public class SegmentHandler {
      * @param sensorEvent
      */
     public void setSurfaceDoctorGravity(SensorEvent sensorEvent ) {
-
         gravity = sensorEvent.values.clone();
     }
 
@@ -181,8 +180,11 @@ public class SegmentHandler {
 
         // The approximate distance in meters.
         float lineDistance = locationStart.distanceTo(locationEnd);
+
         // The speed in m/s
         float lineSpeed = locationEnd.getSpeed();
+
+        // Long / Lat of the Location pairs.
         DecimalFormat coordinatesFormat = new DecimalFormat("#.######");
         String[] coordinatesStart = new String[]{
                 coordinatesFormat.format(locationStart.getLongitude()),
@@ -268,7 +270,7 @@ public class SegmentHandler {
             }
         }
 
-        // Now, IRI(mm/m) = (total vertical displacement * 1000) / segment distance.
+        // IRI(mm/m) = (total vertical displacement * 1000) / segment distance.
         // TODO: Need to allow the user to output IRI in mm/m or m/km.
         double totalIRIofX = (totalVerticalDisplacement[0] * 1000) / distance;
         double totalIRIofY = (totalVerticalDisplacement[1] * 1000) / distance;
@@ -294,47 +296,44 @@ public class SegmentHandler {
 
 
     private void saveResults(double distance, double IRIofX, double IRIofY, double IRIofZ, ArrayList<String[]> polyline ) {
+        // TODO: Instead of one file per segment, append multiple segments to one file.
 
+        // Check if we have access to external storage?
         if ( isExternalStorageWritable() ) {
+            // TODO: Save file as geoJSON or EsriJSON.
+
             // Add results to GeoJSON.
 
-            String[][] test = new String[polyline.size()][polyline.size()];
-            test = polyline.toArray(test);
+            // Convert the ArrayList to a string array.
+            String[][] polylineArray = new String[polyline.size()][polyline.size()];
+            polylineArray = polyline.toArray(polylineArray);
 
+            // Create geoJASON string.
+            // Tried using JASONobject and JASONArray, but couldn't git rid of quotes around coordinates. Didn't have
+            // access to GSON library due to network permissions.
             String output = "{\"type\": \"FeatureCollection\", \"features\": [ { \"type\": \"Feature\", \"geometry\":" +
-                    "{ \"type\": \"LineString\", \"coordinates\":" + Arrays.deepToString(test) + "},\"properties\": { \"DISTANCE\":" +
-                    distance + ", \"IRIofX\":" + IRIofX + ", \"IRIofY\":" + IRIofY + ", \"IRIofZ\":" + IRIofZ + "}}]}";
+                    "{ \"type\": \"LineString\", \"coordinates\":" + Arrays.deepToString(polylineArray) + "}," +
+                    "\"properties\": { \"DISTANCE\":" + distance + ", \"IRIofX\":" + IRIofX + ", \"IRIofY\":" + IRIofY +
+                    ", \"IRIofZ\":" + IRIofZ + "}}]}";
 
-
+            // Let's save the geoJASON string.
             byte[] outputBytes = output.getBytes();
-
             File file = getPrivateStorageDirectory(context, String.valueOf(accelerometerStartTime) + ".geojson");
-
             try {
                 FileOutputStream fos = new FileOutputStream(file);
-
                 try {
                     fos.write(outputBytes);
                     fos.close();
                 } catch (IOException e) {
                     Log.e("ERROR", "IO Exception");
                 }
-
-
             } catch (FileNotFoundException e) {
                 Log.e("ERROR", "File not found");
             }
 
-
-
-
-
-
-            // TODO: Save file as geoJSON or EsriJSON.
         } else {
-            // TODO: We'll save to inter
+            // TODO: If no access external storage, let's save to internal until we do get access.
         }
-
     }
 
 
@@ -369,7 +368,7 @@ public class SegmentHandler {
         // Clear the list of coordinates that make the polyline. 
         segmentCoordinates.clear();
 
-        //
+        // Hard resets are used when a sensor loses connectivity or passes a threshold.
         if ( hardReset ) {
             hasLocationPairs = false;
             endPoint = null;
@@ -387,6 +386,12 @@ public class SegmentHandler {
         return false;
     }
 
+    /** Creates an empty file that can be written to.
+     *
+     * @param context
+     * @param fileName
+     * @return
+     */
     private File getPrivateStorageDirectory(Context context, String fileName) {
         File file = new File(context.getExternalFilesDir("geoJson"), fileName);
         return file;
