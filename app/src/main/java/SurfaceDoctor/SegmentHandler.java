@@ -20,7 +20,7 @@ public class SegmentHandler {
 
     // Default user input parameters.
     private boolean units = true;
-    private int maxDistance = 1000;
+    private int maxDistance = 100;
     private int maxSpeed = 80;
     private int minSpeed = 20;
 
