@@ -7,6 +7,8 @@ public class SurfaceDoctorPoint {
     public float[] gravity;
     public float[] magnetometer;
 
+    public long timeCreated;
+
     private long tStart;
     private long tStop;
 
@@ -18,6 +20,8 @@ public class SurfaceDoctorPoint {
         magnetometer = inMagnetometer;
         tStart = startTime;
         tStop = stopTime;
+
+        timeCreated = System.currentTimeMillis();
     }
 
     public double getVertDissX(boolean returnEarthCoordinateSystem) {
