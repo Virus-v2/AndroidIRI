@@ -1,6 +1,8 @@
 package SurfaceDoctor;
 
 public class SurfaceDoctorPoint {
+    public String id;
+
     private float[] accelerometerPhone;
     private float[] accelerometerEarth;
 
@@ -13,7 +15,8 @@ public class SurfaceDoctorPoint {
     private long tStop;
 
 
-    public SurfaceDoctorPoint(float[] accelPhone, float[] accelEarth, float[] inGravity, float[] inMagnetometer, long startTime, long stopTime) {
+    public SurfaceDoctorPoint(String inId, float[] accelPhone, float[] accelEarth, float[] inGravity, float[] inMagnetometer, long startTime, long stopTime) {
+        id = inId;
         accelerometerPhone = accelPhone;
         accelerometerEarth = accelEarth;
         gravity = inGravity;

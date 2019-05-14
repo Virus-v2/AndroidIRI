@@ -15,9 +15,12 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 
 public class SegmentHandler {
+
+
 
     // Default user input parameters.
     private boolean units = true;
@@ -27,6 +30,8 @@ public class SegmentHandler {
 
     private Context context;
     private SensorManager sensorManager;
+
+    private String uniqueID = UUID.randomUUID().toString();
 
     private long accelerometerStartTime = 0;
     private long accelerometerStopTime = 0;
@@ -119,15 +124,12 @@ public class SegmentHandler {
 
             // For each measurement of the accelerometer, create a SurfaceDoctorPoint object.
             SurfaceDoctorPoint surfaceDoctorPoint = new SurfaceDoctorPoint(
+                    uniqueID,
                     linearAccelerationPhone,
                     linearAccelerationEarth,
                     accelerometerStartTime,
                     accelerometerStopTime);
             surfaceDoctorPoints.add(surfaceDoctorPoint);
-
-//            Log.i("POINT", "X: " + surfaceDoctorPoint.getVertDissX() +
-//                    " Y: " + surfaceDoctorPoint.getVertDissY() +
-//                    " Z: " + surfaceDoctorPoint.getVertDissZ());
         }
     }
 
@@ -228,7 +230,7 @@ public class SegmentHandler {
             segmentCoordinates.add(coordinatesLast);
 
             // This is the end of a segment, let's send it off to be finalized.
-            finalizeSegment(totalAccumulatedDistance, segmentCoordinates, surfaceDoctorPoints);
+            finalizeSegment(uniqueID, totalAccumulatedDistance, segmentCoordinates, surfaceDoctorPoints);
 
             // Let's reset for the next segment.
             // TODO: Is this safe here?
@@ -251,7 +253,7 @@ public class SegmentHandler {
      *
      *  Executes when the segment distance threshold has been met.      *
      */
-    private void finalizeSegment(double distance, ArrayList<String[]> polyline, List<SurfaceDoctorPoint> measurements) {
+    private void finalizeSegment(String id ,double distance, ArrayList<String[]> polyline, List<SurfaceDoctorPoint> measurements) {
 
         double[] totalVerticalDisplacementPhone = new double[3];
         double[] totalVerticalDisplacementEarth = new double[3];
@@ -303,11 +305,11 @@ public class SegmentHandler {
             listener.onSurfaceDoctorEvent(e);
         }
 
-        saveResults(distance, totalIRIPhone, totalIRIEarth, polyline);
+        saveResults(id, distance, totalIRIPhone, totalIRIEarth, polyline);
     }
 
 
-    private void saveResults(double distance, double[] phoneIRI, double[] earthIRI, ArrayList<String[]> polyline ) {
+    private void saveResults(String id, double distance, double[] phoneIRI, double[] earthIRI, ArrayList<String[]> polyline ) {
         // TODO: Instead of one file per segment, append multiple segments to one file.
 
         // Check if we have access to external storage?
@@ -327,13 +329,14 @@ public class SegmentHandler {
             str.append("{\"type\": \"Feature\", \"geometry\":{ \"type\": \"LineString\",");
             str.append("\"coordinates\":" + Arrays.deepToString(polylineArray) + "},");
             str.append("\"properties\": {");
+            str.append("\"ID\":" + id + ",");
             str.append("\"DISTANCE\":" + distance + ",");
             str.append("\"IRIphoneX\":" + phoneIRI[0] + ",");
             str.append("\"IRIphoneY\":" + phoneIRI[1] + ",");
             str.append("\"IRIphoneZ\":" + phoneIRI[2] + ",");
-            str.append("\"IRIearthX\":" + phoneIRI[0] + ",");
-            str.append("\"IRIearthY\":" + phoneIRI[1] + ",");
-            str.append("\"IRIearthZ\":" + phoneIRI[2] + "}}");
+            str.append("\"IRIearthX\":" + earthIRI[0] + ",");
+            str.append("\"IRIearthY\":" + earthIRI[1] + ",");
+            str.append("\"IRIearthZ\":" + earthIRI[2] + "}}");
             str.append("]}");
 
             // Let's save the geoJASON string.
@@ -378,6 +381,9 @@ public class SegmentHandler {
      * @param hardReset boolean
      */
     private void resetSegment(boolean hardReset) {
+
+        // Get new segment ID
+        uniqueID = UUID.randomUUID().toString();
 
         // Reset the segment distance to zero.
         totalAccumulatedDistance = 0;
