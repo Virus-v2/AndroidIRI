@@ -252,19 +252,9 @@ public class SegmentHandler {
             // longitudinal offset.
             if ( previousIndex >= 0 ) {
 
-                double[] currentVerticalDisplacement = new double[3];
-                double[] previousVerticalDisplacement = new double[3];
-
-                currentVerticalDisplacement[0] = measurements.get(i).getVertDissX();
-                currentVerticalDisplacement[1] = measurements.get(i).getVertDissY();
-                currentVerticalDisplacement[2] = measurements.get(i).getVertDissZ();
-                previousVerticalDisplacement[0]  = measurements.get(previousIndex).getVertDissX();
-                previousVerticalDisplacement[1]  = measurements.get(previousIndex).getVertDissY();
-                previousVerticalDisplacement[2] = measurements.get(previousIndex).getVertDissZ();
-
-                totalVerticalDisplacement[0] += Math.abs( currentVerticalDisplacement[0] - previousVerticalDisplacement[0] );
-                totalVerticalDisplacement[1] += Math.abs( currentVerticalDisplacement[1] - previousVerticalDisplacement[1] );
-                totalVerticalDisplacement[2] += Math.abs( currentVerticalDisplacement[2] - previousVerticalDisplacement[2] );
+                totalVerticalDisplacement[0] += Math.abs( measurements.get(i).getVertDissX() - measurements.get(previousIndex).getVertDissX() );
+                totalVerticalDisplacement[1] += Math.abs( measurements.get(i).getVertDissY() - measurements.get(previousIndex).getVertDissY() );
+                totalVerticalDisplacement[2] += Math.abs( measurements.get(i).getVertDissZ() - measurements.get(previousIndex).getVertDissZ() );
             }
         }
 
