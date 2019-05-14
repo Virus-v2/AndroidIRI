@@ -30,7 +30,7 @@ public class VectorAlgebra {
         // Y axis -> North Pole
         // Z axis -> Sky
 
-        float[] R = new float[16], I = new float[16], earthAcceleration = new float[16];
+        float[] R = new float[16], I = new float[16], earthAcceleration = new float[16], earthAccelerationFinal = new float[3];
 
         sensorManager.getRotationMatrix(R, I, gravity, magnetometer);
 
@@ -39,7 +39,11 @@ public class VectorAlgebra {
         android.opengl.Matrix.invertM(inv, 0, R, 0);
         android.opengl.Matrix.multiplyMV(earthAcceleration, 0, inv, 0, phoneAcceleration, 0);
 
-        return earthAcceleration;
+        earthAccelerationFinal[0] = earthAcceleration[0];
+        earthAccelerationFinal[1] = earthAcceleration[1];
+        earthAccelerationFinal[2] = earthAcceleration[2];
+
+        return earthAccelerationFinal;
 
     }
 
