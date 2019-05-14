@@ -2,6 +2,7 @@ package SurfaceDoctor;
 
 import android.content.Context;
 import android.hardware.SensorEvent;
+import android.hardware.SensorManager;
 import android.location.Location;
 import android.os.Environment;
 import android.util.Log;
@@ -25,6 +26,7 @@ public class SegmentHandler {
     private int minSpeed = 20;
 
     private Context context;
+    private SensorManager sensorManager;
 
     private long accelerometerStartTime = 0;
     private long accelerometerStopTime = 0;
@@ -51,8 +53,10 @@ public class SegmentHandler {
      *
      * @param context
      */
-    public SegmentHandler(Context context) {
+    public SegmentHandler(Context context, SensorManager sm) {
+
         this.context = context;
+        sensorManager = sm;
     }
 
 
