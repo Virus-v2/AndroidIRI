@@ -321,7 +321,7 @@ public class MainActivity extends AppCompatActivity
             isToggleRecordingButtonClicked = true;
 
             // We're ready to start logging, let's create a new SegmentHandler object.
-            segmentHandler = new SegmentHandler(this);
+            segmentHandler = new SegmentHandler(this, SensorManager);
             segmentHandler.setSomeEventListener(this);
         }
     }
