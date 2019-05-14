@@ -22,7 +22,7 @@ public class SegmentHandler {
     // Default user input parameters.
     private boolean units = true;
     private int maxDistance = 100;
-    private int maxSpeed = 80;
+    private int maxSpeed = 8000;
     private int minSpeed = 20;
 
     private Context context;
@@ -106,7 +106,7 @@ public class SegmentHandler {
             adjustedGravity[2] = alpha * gravity[2] + (1 - alpha) * inputAccelerometer[2];
 
             // High-pass filter for removing gravity.
-            float[] linearAcceleration = new float[3];
+            float[] linearAccelerationPhone = new float[3];
 
             linearAccelerationPhone[0] = inputAccelerometer[0] - adjustedGravity[0];
             linearAccelerationPhone[1] = inputAccelerometer[1] - adjustedGravity[1];
@@ -120,6 +120,7 @@ public class SegmentHandler {
             // For each measurement of the accelerometer, create a SurfaceDoctorPoint object.
             SurfaceDoctorPoint surfaceDoctorPoint = new SurfaceDoctorPoint(
                     linearAccelerationPhone,
+                    linearAccelerationEarth,
                     accelerometerStartTime,
                     accelerometerStopTime);
             surfaceDoctorPoints.add(surfaceDoctorPoint);
@@ -252,48 +253,61 @@ public class SegmentHandler {
      */
     private void finalizeSegment(double distance, ArrayList<String[]> polyline, List<SurfaceDoctorPoint> measurements) {
 
-        double[] totalVerticalDisplacement = new double[3];
+        double[] totalVerticalDisplacementPhone = new double[3];
+        double[] totalVerticalDisplacementEarth = new double[3];
 
-        // First get the total vertical displacement of the segment.
+        // First get the total vertical displacement of the segment in both Earth and Phone coordinate system.
         for (int i = 0; i < measurements.size(); i++ ) {
             int previousIndex = i - 1;
 
-            // Vertical Displacements equals the absolute value of the current longitudinal offset minus the previous
+            // Vertical Displacement equals the absolute value of the current longitudinal offset minus the previous
             // longitudinal offset.
             if ( previousIndex >= 0 ) {
 
-                totalVerticalDisplacement[0] += Math.abs( measurements.get(i).getVertDissX() - measurements.get(previousIndex).getVertDissX() );
-                totalVerticalDisplacement[1] += Math.abs( measurements.get(i).getVertDissY() - measurements.get(previousIndex).getVertDissY() );
-                totalVerticalDisplacement[2] += Math.abs( measurements.get(i).getVertDissZ() - measurements.get(previousIndex).getVertDissZ() );
+                totalVerticalDisplacementPhone[0] += Math.abs( measurements.get(i).getVertDissX(false) - measurements.get(previousIndex).getVertDissX(false) );
+                totalVerticalDisplacementPhone[1] += Math.abs( measurements.get(i).getVertDissY(false) - measurements.get(previousIndex).getVertDissY(false) );
+                totalVerticalDisplacementPhone[2] += Math.abs( measurements.get(i).getVertDissZ(false) - measurements.get(previousIndex).getVertDissZ(false) );
+
+                totalVerticalDisplacementEarth[0] += Math.abs( measurements.get(i).getVertDissX(true) - measurements.get(previousIndex).getVertDissX(true) );
+                totalVerticalDisplacementEarth[1] += Math.abs( measurements.get(i).getVertDissY(true) - measurements.get(previousIndex).getVertDissY(true) );
+                totalVerticalDisplacementEarth[2] += Math.abs( measurements.get(i).getVertDissZ(true) - measurements.get(previousIndex).getVertDissZ(true) );
             }
         }
 
         // IRI(mm/m) = (total vertical displacement * 1000) / segment distance.
         // TODO: Need to allow the user to output IRI in mm/m or m/km.
-        double totalIRIofX = (totalVerticalDisplacement[0] * 1000) / distance;
-        double totalIRIofY = (totalVerticalDisplacement[1] * 1000) / distance;
-        double totalIRIofZ = (totalVerticalDisplacement[2] * 1000) / distance;
+        double[] totalIRIPhone = new double[3];
+        double[] totalIRIEarth = new double[3];
 
-        Log.i("IRI", "X " + totalIRIofX + " Y " + totalIRIofY + " Z " + totalIRIofZ);
+        totalIRIPhone[0] = (totalVerticalDisplacementPhone[0] * 1000) / distance;
+        totalIRIPhone[1] = (totalVerticalDisplacementPhone[1] * 1000) / distance;
+        totalIRIPhone[2] = (totalVerticalDisplacementPhone[2] * 1000) / distance;
+
+        totalIRIEarth[0] = (totalVerticalDisplacementEarth[0] * 1000) / distance;
+        totalIRIEarth[1] = (totalVerticalDisplacementEarth[1] * 1000) / distance;
+        totalIRIEarth[2] = (totalVerticalDisplacementEarth[2] * 1000) / distance;
+
+        Log.i("IRI", "Xphone " + totalIRIPhone[0] + " Yphone " + totalIRIPhone[1] + " Zphone " + totalIRIPhone[2] +
+                " XEarth " + totalIRIEarth[0] + " YEarth " + totalIRIEarth[1] + " ZEarth " + totalIRIEarth[2]);
 
         // Let's pass the segment data to the SurfaceDoctorEvent so it can be used in the main activity.
         // The SurfaceDoctorEvent will be triggered in the MainActivity.
         if (listener != null) {
             SurfaceDoctorEvent e = new SurfaceDoctorEvent();
             e.type = "TYPE_SEGMENT_IRI";
-            e.x = totalIRIofX;
-            e.y = totalIRIofY;
-            e.z = totalIRIofZ;
+            e.x = totalIRIPhone[0];
+            e.y = totalIRIPhone[1];
+            e.z = totalIRIPhone[2];
             e.distance = distance;
             // TODO: Assign output to SurfaceDoctorEvent class.
             listener.onSurfaceDoctorEvent(e);
         }
 
-        saveResults(distance, totalIRIofX, totalIRIofY, totalIRIofZ, polyline);
+        saveResults(distance, totalIRIPhone, totalIRIEarth, polyline);
     }
 
 
-    private void saveResults(double distance, double IRIofX, double IRIofY, double IRIofZ, ArrayList<String[]> polyline ) {
+    private void saveResults(double distance, double[] phoneIRI, double[] earthIRI, ArrayList<String[]> polyline ) {
         // TODO: Instead of one file per segment, append multiple segments to one file.
 
         // Check if we have access to external storage?
@@ -311,8 +325,11 @@ public class SegmentHandler {
             // access to GSON library due to network permissions.
             String output = "{\"type\": \"FeatureCollection\", \"features\": [ { \"type\": \"Feature\", \"geometry\":" +
                     "{ \"type\": \"LineString\", \"coordinates\":" + Arrays.deepToString(polylineArray) + "}," +
-                    "\"properties\": { \"DISTANCE\":" + distance + ", \"IRIofX\":" + IRIofX + ", \"IRIofY\":" + IRIofY +
-                    ", \"IRIofZ\":" + IRIofZ + "}}]}";
+                    "\"properties\": { \"DISTANCE\":" + distance + ", \"IRIphoneX\":" + phoneIRI[0] + ", \"IRIphoneY\":" + phoneIRI[1] +
+                    ", \"IRIphoneZ\":" + phoneIRI[2] + ", \"IRIearthX\":" + earthIRI[0] + ", \"IRIearthY\":" + earthIRI[1] +
+                    ", \"IRIearthZ\":" + earthIRI[2] + "}}]}";
+
+            Log.i("IRI", output);
 
             // Let's save the geoJASON string.
             byte[] outputBytes = output.getBytes();

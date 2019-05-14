@@ -437,11 +437,15 @@ public class MainActivity extends AppCompatActivity
 
             case Sensor.TYPE_MAGNETIC_FIELD:
                 MagnetometerData = sensorEvent.values.clone();
+
+                if ( segmentHandler != null ) {
+                    segmentHandler.setSurfaceDoctorMagnetometer(sensorEvent);
+                }
                 break;
             case Sensor.TYPE_GRAVITY:
                 GravityData = sensorEvent.values.clone();
 
-                if (segmentHandler != null ) {
+                if ( segmentHandler != null ) {
                     segmentHandler.setSurfaceDoctorGravity(sensorEvent);
                 }
 
