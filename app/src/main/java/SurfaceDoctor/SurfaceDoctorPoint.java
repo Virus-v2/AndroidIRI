@@ -3,13 +3,19 @@ package SurfaceDoctor;
 public class SurfaceDoctorPoint {
     private float[] accelerometerPhone;
     private float[] accelerometerEarth;
+
+    public float[] gravity;
+    public float[] magnetometer;
+
     private long tStart;
     private long tStop;
 
 
-    public SurfaceDoctorPoint(float[] accelPhone, float[] accelEarth, long startTime, long stopTime) {
+    public SurfaceDoctorPoint(float[] accelPhone, float[] accelEarth, float[] inGravity, float[] inMagnetometer, long startTime, long stopTime) {
         accelerometerPhone = accelPhone;
         accelerometerEarth = accelEarth;
+        gravity = inGravity;
+        magnetometer = inMagnetometer;
         tStart = startTime;
         tStop = stopTime;
     }
