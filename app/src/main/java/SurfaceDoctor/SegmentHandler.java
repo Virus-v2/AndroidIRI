@@ -127,6 +127,8 @@ public class SegmentHandler {
                     uniqueID,
                     linearAccelerationPhone,
                     linearAccelerationEarth,
+                    gravity,
+                    magnetometer,
                     accelerometerStartTime,
                     accelerometerStopTime);
             surfaceDoctorPoints.add(surfaceDoctorPoint);
