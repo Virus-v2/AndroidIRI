@@ -33,6 +33,7 @@ public class SegmentHandler {
     private List<SurfaceDoctorPoint> surfaceDoctorPoints = new ArrayList<SurfaceDoctorPoint>();
 
     private float[] gravity = new float[3];
+    private float[] magnetometer = new float[3];
 
     private float alpha = 0.8f;
 
@@ -138,6 +139,8 @@ public class SegmentHandler {
     public void setSurfaceDoctorGravity(SensorEvent sensorEvent ) {
         gravity = sensorEvent.values.clone();
     }
+
+    public void setSurfaceDoctorMagnetometer(SensorEvent sensorEvent) { magnetometer = sensorEvent.values.clone(); }
 
 
     /** Method for receiving Location data from the GPS sensor.
