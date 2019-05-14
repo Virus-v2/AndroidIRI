@@ -115,6 +115,10 @@ public class SegmentHandler {
                     accelerometerStartTime,
                     accelerometerStopTime);
             surfaceDoctorPoints.add(surfaceDoctorPoint);
+
+//            Log.i("POINT", "X: " + surfaceDoctorPoint.getVertDissX() +
+//                    " Y: " + surfaceDoctorPoint.getVertDissY() +
+//                    " Z: " + surfaceDoctorPoint.getVertDissZ());
         }
     }
 
@@ -212,14 +216,8 @@ public class SegmentHandler {
             // The segement is done, add the last coordinate.
             segmentCoordinates.add(coordinatesLast);
 
-            // Make a new reference to the data.
-            // TODO: Note sure if this is necessary.
-            double finalDistance = totalAccumulatedDistance;
-            ArrayList<String[]> finalCoordinantes = new ArrayList<>(segmentCoordinates);
-            List<SurfaceDoctorPoint> finalPoints = new ArrayList<>(surfaceDoctorPoints);
-
             // This is the end of a segment, let's send it off to be finalized.
-            finalizeSegment(finalDistance, finalCoordinantes, finalPoints);
+            finalizeSegment(totalAccumulatedDistance, segmentCoordinates, surfaceDoctorPoints);
 
             // Let's reset for the next segment.
             // TODO: Is this safe here?
