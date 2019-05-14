@@ -320,19 +320,24 @@ public class SegmentHandler {
             String[][] polylineArray = new String[polyline.size()][polyline.size()];
             polylineArray = polyline.toArray(polylineArray);
 
-            // Create geoJASON string.
+            // Create geoJSON string.
             // Tried using JASONobject and JASONArray, but couldn't git rid of quotes around coordinates. Didn't have
             // access to GSON library due to network permissions.
-            String output = "{\"type\": \"FeatureCollection\", \"features\": [ { \"type\": \"Feature\", \"geometry\":" +
-                    "{ \"type\": \"LineString\", \"coordinates\":" + Arrays.deepToString(polylineArray) + "}," +
-                    "\"properties\": { \"DISTANCE\":" + distance + ", \"IRIphoneX\":" + phoneIRI[0] + ", \"IRIphoneY\":" + phoneIRI[1] +
-                    ", \"IRIphoneZ\":" + phoneIRI[2] + ", \"IRIearthX\":" + earthIRI[0] + ", \"IRIearthY\":" + earthIRI[1] +
-                    ", \"IRIearthZ\":" + earthIRI[2] + "}}]}";
-
-            Log.i("IRI", output);
+            StringBuilder str = new StringBuilder("{\"type\": \"FeatureCollection\", \"features\": [");
+            str.append("{\"type\": \"Feature\", \"geometry\":{ \"type\": \"LineString\",");
+            str.append("\"coordinates\":" + Arrays.deepToString(polylineArray) + "},");
+            str.append("\"properties\": {");
+            str.append("\"DISTANCE\":" + distance + ",");
+            str.append("\"IRIphoneX\":" + phoneIRI[0] + ",");
+            str.append("\"IRIphoneY\":" + phoneIRI[1] + ",");
+            str.append("\"IRIphoneZ\":" + phoneIRI[2] + ",");
+            str.append("\"IRIearthX\":" + phoneIRI[0] + ",");
+            str.append("\"IRIearthY\":" + phoneIRI[1] + ",");
+            str.append("\"IRIearthZ\":" + phoneIRI[2] + "}}");
+            str.append("]}");
 
             // Let's save the geoJASON string.
-            byte[] outputBytes = output.getBytes();
+            byte[] outputBytes = str.toString().getBytes();
             File file = getPrivateStorageDirectory(context, String.valueOf(accelerometerStartTime) + ".geojson");
             try {
                 FileOutputStream fos = new FileOutputStream(file);
