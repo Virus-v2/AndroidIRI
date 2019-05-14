@@ -103,15 +103,18 @@ public class SegmentHandler {
             // High-pass filter for removing gravity.
             float[] linearAcceleration = new float[3];
 
-            linearAcceleration[0] = inputAccelerometer[0] - adjustedGravity[0];
-            linearAcceleration[1] = inputAccelerometer[1] - adjustedGravity[1];
-            linearAcceleration[2] = inputAccelerometer[2] - adjustedGravity[2];
+            linearAccelerationPhone[0] = inputAccelerometer[0] - adjustedGravity[0];
+            linearAccelerationPhone[1] = inputAccelerometer[1] - adjustedGravity[1];
+            linearAccelerationPhone[2] = inputAccelerometer[2] - adjustedGravity[2];
+
+            // Convert Accelerometer from phone coordinate system to earth coordinate system.
+            float[] linearAccelerationEarth = VectorAlgebra.earthAccelerometer(
+                    linearAccelerationPhone, magnetometer,
+                    gravity, sensorManager);
 
             // For each measurement of the accelerometer, create a SurfaceDoctorPoint object.
             SurfaceDoctorPoint surfaceDoctorPoint = new SurfaceDoctorPoint(
-                    linearAcceleration[0],
-                    linearAcceleration[1],
-                    linearAcceleration[2],
+                    linearAccelerationPhone,
                     accelerometerStartTime,
                     accelerometerStopTime);
             surfaceDoctorPoints.add(surfaceDoctorPoint);
