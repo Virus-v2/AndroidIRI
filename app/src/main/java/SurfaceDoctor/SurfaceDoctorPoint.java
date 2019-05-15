@@ -57,4 +57,25 @@ public class SurfaceDoctorPoint {
             return accelerometerPhone[2] * timeDiff * timeDiff;
         }
     }
+
+    public String getRowString() {
+        StringBuilder str = new StringBuilder(id + ", ");
+        str.append(accelerometerPhone[0] + ", ");
+        str.append(accelerometerPhone[1] + ", ");
+        str.append(accelerometerPhone[2] + ", ");
+        str.append(accelerometerEarth[0] + ", ");
+        str.append(accelerometerEarth[1] + ", ");
+        str.append(accelerometerEarth[2] + ", ");
+        str.append(gravity[0] + ", ");
+        str.append(gravity[1] + ", ");
+        str.append(gravity[2] + ", ");
+        str.append(magnetometer[0] + ", ");
+        str.append(magnetometer[1] + ", ");
+        str.append(magnetometer[2] + ", ");
+        str.append(timeCreated + ", ");
+        str.append(tStart + ", ");
+        str.append(tStop);
+
+        return  str.toString();
+    }
 }
