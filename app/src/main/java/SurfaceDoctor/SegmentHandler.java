@@ -257,12 +257,24 @@ public class SegmentHandler {
      */
     private void finalizeSegment(String id ,double distance, ArrayList<String[]> polyline, List<SurfaceDoctorPoint> measurements) {
 
+        // Create the header for the output table.
+        StringBuilder tableString = new StringBuilder("id,AccPhoneX,AccPhoneY,AccPhoneZ,AccEarthX,AccEarthY,AccEarthZ,");
+        tableString.append("GravityX,GravityY,GravityZ,");
+        tableString.append("MagnetX,MagnetY,MagnetZ,");
+        tableString.append("Created,sStart,sStop,Distance");
+        tableString.append(System.getProperty("line.separator"));
+
         double[] totalVerticalDisplacementPhone = new double[3];
         double[] totalVerticalDisplacementEarth = new double[3];
 
         // First get the total vertical displacement of the segment in both Earth and Phone coordinate system.
         for (int i = 0; i < measurements.size(); i++ ) {
             int previousIndex = i - 1;
+
+            // Append the SurfaceDoctorPoint as a row in tableString so we can output a table later.
+            tableString.append(measurements.get(i).getRowString());
+            tableString.append(", " + distance);
+            tableString.append(System.getProperty("line.separator"));
 
             // Vertical Displacement equals the absolute value of the current longitudinal offset minus the previous
             // longitudinal offset.
@@ -307,11 +319,11 @@ public class SegmentHandler {
             listener.onSurfaceDoctorEvent(e);
         }
 
-        saveResults(id, distance, totalIRIPhone, totalIRIEarth, polyline);
+        saveResults(id, distance, totalIRIPhone, totalIRIEarth, polyline, tableString.toString());
     }
 
 
-    private void saveResults(String id, double distance, double[] phoneIRI, double[] earthIRI, ArrayList<String[]> polyline ) {
+    private void saveResults(String id, double distance, double[] phoneIRI, double[] earthIRI, ArrayList<String[]> polyline, String table) {
         // TODO: Instead of one file per segment, append multiple segments to one file.
 
         // Check if we have access to external storage?
@@ -355,6 +367,24 @@ public class SegmentHandler {
             } catch (FileNotFoundException e) {
                 Log.e("ERROR", "File not found");
             }
+
+
+            // Let's save the table as a txt file
+            byte[] tableBytes = table.getBytes();
+            File tableFile = getPrivateStorageDirectory(context, String.valueOf(accelerometerStartTime) + ".csv");
+            try {
+                FileOutputStream fos = new FileOutputStream(tableFile);
+                try {
+                    fos.write(tableBytes);
+                    fos.close();
+                } catch (IOException e) {
+                    Log.e("ERROR", "IO exception");
+                }
+            } catch (FileNotFoundException e) {
+                Log.e("ERROR", "File not found");
+            }
+
+
 
         } else {
             // TODO: If no access external storage, let's save to internal until we do get access.
