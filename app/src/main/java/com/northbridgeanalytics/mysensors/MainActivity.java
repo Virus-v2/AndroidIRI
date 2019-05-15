@@ -174,15 +174,15 @@ public class MainActivity extends AppCompatActivity
         // TODO: Need a dialog saying sensors aren't available.
         if (SensorAccelerometer != null) {
             SensorManager.registerListener(this, SensorAccelerometer,
-                    SensorManager.SENSOR_DELAY_NORMAL);
+                    SensorManager.SENSOR_DELAY_FASTEST);
         }
         if (SensorMagnetometer != null) {
             SensorManager.registerListener(this, SensorMagnetometer,
-                    SensorManager.SENSOR_DELAY_NORMAL);
+                    SensorManager.SENSOR_DELAY_FASTEST);
         }
         if (SensorManager != null) {
             SensorManager.registerListener(this, SensorGravity,
-                    SensorManager.SENSOR_DELAY_NORMAL);
+                    SensorManager.SENSOR_DELAY_FASTEST);
         }
 
         Log.i("Activity", "OnStart has fired");
