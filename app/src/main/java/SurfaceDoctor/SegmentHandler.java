@@ -7,10 +7,8 @@ import android.location.Location;
 import android.os.Environment;
 import android.util.Log;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,7 +42,7 @@ public class SegmentHandler {
 
     private boolean hasLocationPairs = false;
     private Location endPoint;
-    private ArrayList<String[]> segmentCoordinates = new ArrayList<>();
+    private ArrayList<double[]> segmentCoordinates = new ArrayList<>();
 
     private float totalAccumulatedDistance = 0.0f;
 
@@ -204,13 +202,8 @@ public class SegmentHandler {
         float lineSpeed = locationEnd.getSpeed();
 
         // Long / Lat of the Location pairs.
-        DecimalFormat coordinatesFormat = new DecimalFormat("#.######");
-        String[] coordinatesStart = new String[]{
-                coordinatesFormat.format(locationStart.getLongitude()),
-                coordinatesFormat.format(locationStart.getLatitude())};
-        String[] coordinatesLast = new String[]{
-                coordinatesFormat.format(locationEnd.getLongitude()),
-                coordinatesFormat.format(locationEnd.getLatitude())};
+        double[] coordinatesStart = new double[]{ locationStart.getLongitude(), locationStart.getLatitude() };
+        double[] coordinatesLast = new double[]{ locationEnd.getLongitude(), locationEnd.getLatitude() };
 
         // We're within speed and haven't reached the end of a segment, let's add the distance between the coordinate
         // pairs to the total distance of the segment.
@@ -255,7 +248,7 @@ public class SegmentHandler {
      *
      *  Executes when the segment distance threshold has been met.      *
      */
-    private void finalizeSegment(String id ,double distance, ArrayList<String[]> polyline, List<SurfaceDoctorPoint> measurements) {
+    private void finalizeSegment(String id ,double distance, ArrayList<double[]> polyline, List<SurfaceDoctorPoint> measurements) {
 
         // Create the header for the output table.
         StringBuilder tableString = new StringBuilder("id,AccPhoneX,AccPhoneY,AccPhoneZ,AccEarthX,AccEarthY,AccEarthZ,");
@@ -323,7 +316,7 @@ public class SegmentHandler {
     }
 
 
-    private void saveResults(String id, double distance, double[] phoneIRI, double[] earthIRI, ArrayList<String[]> polyline, String table) {
+    private void saveResults(String id, double distance, double[] phoneIRI, double[] earthIRI, ArrayList<double[]> polyline, String table) {
         // TODO: Instead of one file per segment, append multiple segments to one file.
 
         // Check if we have access to external storage?
@@ -332,16 +325,12 @@ public class SegmentHandler {
 
             // Add results to GeoJSON.
 
-            // Convert the ArrayList to a string array.
-            String[][] polylineArray = new String[polyline.size()][polyline.size()];
-            polylineArray = polyline.toArray(polylineArray);
-
             // Create geoJSON string.
             // Tried using JASONobject and JASONArray, but couldn't git rid of quotes around coordinates. Didn't have
             // access to GSON library due to network permissions.
             StringBuilder str = new StringBuilder("{\"type\": \"FeatureCollection\", \"features\": [");
             str.append("{\"type\": \"Feature\", \"geometry\":{ \"type\": \"LineString\",");
-            str.append("\"coordinates\":" + Arrays.deepToString(polylineArray) + "},");
+            str.append("\"coordinates\":" + Arrays.deepToString(polyline.toArray()) + "},");
             str.append("\"properties\": {");
             str.append("\"ID\":" + id + ",");
             str.append("\"DISTANCE\":" + distance + ",");
@@ -353,21 +342,18 @@ public class SegmentHandler {
             str.append("\"IRIearthZ\":" + earthIRI[2] + "}}");
             str.append("]}");
 
-            // Let's save the geoJASON string.
-            byte[] outputBytes = str.toString().getBytes();
+            // Let's save the geoJSON string.
             File file = getPrivateStorageDirectory(context, String.valueOf(accelerometerStartTime) + ".geojson");
             try {
-                FileOutputStream fos = new FileOutputStream(file);
-                try {
-                    fos.write(outputBytes);
-                    fos.close();
-                } catch (IOException e) {
-                    Log.e("ERROR", "IO Exception");
-                }
-            } catch (FileNotFoundException e) {
-                Log.e("ERROR", "File not found");
-            }
+                file.createNewFile();
 
+                OutputStreamWriter fstream = new OutputStreamWriter( new FileOutputStream(file), StandardCharsets.UTF_16);
+                fstream.write(str.toString());
+                fstream.flush();
+                fstream.close();
+            } catch (IOException e) {
+                Log.e("ERROR", "Failed to create file with error:\n");
+            }
 
             // Let's save the table as a txt file
             byte[] tableBytes = table.getBytes();
